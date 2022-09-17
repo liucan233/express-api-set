@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 
 import { IUser, UserRoles } from '@models/user-model';
-import envVars from 'src/shared/env-vars';
+import envVars from '../shared/env-vars';
 import jwtUtil from '@util/jwt-util';
 
 
