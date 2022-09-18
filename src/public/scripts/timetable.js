@@ -4,13 +4,13 @@ const captcha = document.querySelector(".captcha"),
   cookie = document.querySelector(".cookie");
 
 user.value='5120191916'
-passwd.value='9177880@wjL'
+passwd.value='xxxxxx'
 
-fetch("./api/timetable/login")
+fetch("./api/swust/loginCas")
   .then((res) => {
     return res.json();
   })
   .then((res) => {
-    captcha.src = res.captcha;
-    cookie.value=res.cookie;
+    captcha.src = res.data.captcha;
+    cookie.value=res.data.cookie;
   });
