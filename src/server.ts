@@ -31,7 +31,9 @@ if (envVars.nodeEnv === 'development') {
 
 // Security
 if (envVars.nodeEnv === 'production') {
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: false
+  }));
 }
 
 
