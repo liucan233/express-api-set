@@ -5,7 +5,8 @@ if (localStorage.getItem("cas")) {
 const captcha = document.querySelector(".captcha"),
   user = document.querySelector(".user"),
   passwd = document.querySelector(".passwd"),
-  cookie = document.querySelector(".cookie");
+  cookie = document.querySelector(".cookie"),
+  captchaImg=document.querySelector('.captchaImg')
 
 function handleStartup() {
   fetch("./api/swust/loginCas")
@@ -13,7 +14,7 @@ function handleStartup() {
       return res.json();
     })
     .then((res) => {
-      captcha.src = res.data.captcha;
+      captchaImg.src = res.data.captcha;
       cookie.value = res.data.cookie;
     });
 }
@@ -22,8 +23,11 @@ handleStartup();
 
 function handleSubmit(e) {
   e.preventDefault();
-  const form = new FormData(e.target),
-    params = new URLSearchParams([...form.entries()]);
+  const params = new URLSearchParams();
+  params.set('user',user.value);
+  params.set('cookie',cookie.value);
+  params.set('passwd',passwd.value);
+  params.set('captcha',captcha.value)
   fetch("./api/swust/loginCas", {
     method: "post",
     body: params.toString(),

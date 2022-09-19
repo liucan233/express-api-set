@@ -34,9 +34,6 @@
       .user-form > p{
         text-align: center;
       }
-      .form-item{
-
-      }
       .form-item > h2{
         margin: 5px 0;
         font-size: 16px;
@@ -46,6 +43,7 @@
         height: 30px;
         padding: 2px 10px;
         box-sizing: border-box;
+        font-size: 17px;
       }
       .form-captcha{
         position: relative;
@@ -58,7 +56,7 @@
         right: 10px;
         cursor: pointer;
       }
-      .user-form > button{
+      .loginBtn{
         height: 36px;
         outline: none;
         border: none;
@@ -67,7 +65,7 @@
         cursor: pointer;
         border-radius: 4px;
       }
-      .user-form > button:focus{
+      .loginBtn:focus{
         outline: rgb(39, 91, 169) solid 2px;
       }
     </style>
@@ -103,17 +101,17 @@
           <input
             required
             type="text"
-            class="user"
+            class="captcha"
             name="captcha"
             placeholder="验证码"
           />
-          <img src="" class="captcha" alt="验证码" onclick="handleStartup()"/>
+          <img src="" class="captchaImg" alt="验证码" onclick="handleStartup()"/>
         </div>
         <div class="form-item">
           <h2>COOKIE（自动获取）</h2>
           <input required type="text" class="cookie" name="cookie" />
         </div>
-        <button type="submit" class="loginBtn">登陆</button>
+        <input type="submit" class="loginBtn" value="登陆"/>
       </form>
     </div>
     <script defer src="/scripts/loginCas.js"></script>

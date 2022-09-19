@@ -28,7 +28,7 @@
         text-align: center;
         font-size: 23px;
       }
-      .services > ul{
+      .services > ul {
         list-style: none;
         padding: 0;
       }
@@ -56,10 +56,7 @@
             >
           </li>
           <li>
-            <a
-              data-target="http://soa.swust.edu.cn/"
-              class="open-target"
-            >
+            <a data-target="http://soa.swust.edu.cn/" class="open-target">
               打开一站式服务大厅
             </a>
           </li>
@@ -69,7 +66,10 @@
             </a>
           </li>
           <li>
-            <a data-target="http://202.115.162.45:8080/reader/hwthau.php" class="open-target">
+            <a
+              data-target="http://202.115.162.45:8080/reader/hwthau.php"
+              class="open-target"
+            >
               打开图书馆系统
             </a>
           </li>
@@ -93,6 +93,9 @@
           }),
         });
       }
+      if(/QBWebViewType/.test(navigator.userAgent)){
+        alert('学校部分系统会被QQ内置浏览器拦截，建议使用其他浏览器打开。')
+      }
       function handleOpen(event) {
         if (event.target.tagName === "A") {
           const { target } = event.target.dataset;
@@ -103,8 +106,13 @@
               })
               .then((res) => {
                 if (res.code === 200) {
-                  open(res.data.tickets[0]);
-                  // location.href=res.data.tickets[0]
+                  // window.open(res.data.tickets[0]);
+                  if (/QBWebViewType/.test(navigator.userAgent)) {
+                    location.href = res.data.tickets[0];
+                  } else {
+                    //IOS禁止回调函数直接调用open方法
+                    location.href = `javascript:window.open('${res.data.tickets[0]}')`;
+                  }
                 } else {
                   throw new Error(res.msg);
                 }
