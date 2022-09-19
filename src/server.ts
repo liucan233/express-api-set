@@ -34,7 +34,9 @@ if (envVars.nodeEnv === 'development') {
 if (envVars.nodeEnv === 'production') {
   app.use(helmet({
     contentSecurityPolicy: false,
-    crossOriginOpenerPolicy: false
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
   }));
 }
 
