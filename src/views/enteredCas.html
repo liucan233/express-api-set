@@ -118,7 +118,11 @@
                 }
               })
               .catch((err) => {
-                alert(err.message);
+                const tmp=confirm('打开失败，'+err.message+'，尝试重新登陆吗？');
+                if(tmp){
+                  localStorage.removeItem('cas');
+                  location.href='loginCas';
+                }
               });
           }
         }
