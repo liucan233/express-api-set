@@ -1,7 +1,6 @@
 import { rsaUtils } from "@util/security";
 import got from "got-cjs";
 import { StatusCodes } from "http-status-codes";
-import logger from "jet-logger";
 
 const { OK, MOVED_TEMPORARILY } = StatusCodes;
 
@@ -83,25 +82,63 @@ export const fetchEnteredCasCookie = async (user: IUserInfo) => {
       "Accept-Encoding": "gzip, deflate",
       Cookie: user.cookie,
       "Content-Type": "application/x-www-form-urlencoded",
-      'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-      Host: "cas.swust.edu.cn",
+      "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+      Host: new URL(CAS_URL).hostname,
       "Upgrade-Insecure-Requests": "1",
       Origin: CAS_URL,
       Referer: CAS_URL,
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.54",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
     },
     followRedirect: false,
     body: params.toString(),
-    throwHttpErrors: false
+    throwHttpErrors: false,
   });
-  if(/soa/.test(res.headers['location']||'')){
-    return (res.headers['set-cookie'] as string[]).join(';')
+  if (/soa/.test(res.headers["location"] || "")) {
+    return (res.headers["set-cookie"] as string[]).join(";");
   }
-  const reason=/<b>\S+<\/b>/.exec(res.body);
-  console.log(res.body)
-  if(reason && reason[0].length>8){
-    throw new Error(reason[0].substring(3,reason[0].length-4));
+  const reason = /<b>\S+<\/b>/.exec(res.body);
+  if (reason && reason[0].length > 8) {
+    throw new Error(reason[0].substring(3, reason[0].length - 4));
   } else {
-    throw new Error('登陆CAS页面时发生未知错误');
+    throw new Error("登陆CAS页面时发生未知错误，可能是验证码已被使用过");
   }
+};
+
+/**获取ticket需要的数据 */
+export interface ITicketReqBody{
+  cookie:string
+  targets:string[]
+}
+/**根据cookie和目标系统url，获取到目标系统的ticket */
+export const fetchTicket = async ({targets, cookie}:ITicketReqBody) => {
+  const tickets:string[]=[]
+  for(const target of targets){
+    const { hostname,protocol } = new URL(target)
+    const res = await got.get(CAS_URL +LOGIN_PATH +"?service=" + target, {
+      headers: {
+        cookie,
+        Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+        Host: new URL(CAS_URL).hostname,
+        "Upgrade-Insecure-Requests": "1",
+        Referer: protocol+'//'+hostname,
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
+      },
+      followRedirect: false,
+      throwHttpErrors: false
+    });
+     const location = res.headers["location"];
+    if (!location) {
+      throw new TypeError(
+        "未被CAS系统重定向，CAS系统返回状态码为" + res.statusCode
+      );
+    }
+    if (new RegExp(hostname).test(location)) {
+      tickets.push(location);
+    } else{
+      throw new Error("被重定向到" + location + "，不符合target");
+    }
+  }
+  return tickets;
 };

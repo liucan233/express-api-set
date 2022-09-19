@@ -22,6 +22,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+// app.use()
 app.use(cookieParser(envVars.cookieProps.secret));
 
 // Show routes called in console during development
@@ -78,10 +79,13 @@ app.get('/users', (req: Request, res: Response) => {
   }
 });
 
-app.get('/timetable',(_: Request, res: Response) => {
-  res.sendFile('timetable.html', {root: viewsDir});
+app.get('/loginCas',(_: Request, res: Response) => {
+  res.sendFile('loginCas.html', {root: viewsDir});
 })
 
+app.get('/enteredCas',(_: Request, res: Response) => {
+  res.sendFile('enteredCas.html', {root: viewsDir});
+})
 
 // **** Export default **** //
 

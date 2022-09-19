@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>成功登陆到Cas页面</title>
+    <style>
+      .services-wrap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgb(127, 195, 255);
+      }
+      .services {
+        width: min(100%, 400px);
+        height: 90%;
+        margin: 5vh auto;
+        background-color: rgb(230, 238, 245);
+        box-shadow: 100px 100px 80px rgba(0, 0, 0, 0.07);
+        border-radius: 8px;
+        padding: 10px 20px;
+        box-sizing: border-box;
+      }
+      .services > h1 {
+        margin: 10px 0;
+        text-align: center;
+        font-size: 23px;
+      }
+      .services > ul{
+        list-style: none;
+        padding: 0;
+      }
+      .open-target {
+        padding: 4px;
+        display: block;
+        margin-top: 38px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: underline;
+        font-size: 17px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="services-wrap">
+      <div class="services">
+        <h1>登陆Cas页面成功</h1>
+        <ul onclick="handleOpen(event)">
+          <li>
+            <a
+              class="open-target"
+              data-target="https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=studentPortal:DEFAULT_EVENT"
+              >打开教务系统</a
+            >
+          </li>
+          <li>
+            <a
+              data-target="http://soa.swust.edu.cn/"
+              class="open-target"
+            >
+              打开一站式服务大厅
+            </a>
+          </li>
+          <li>
+            <a data-target="http://202.115.175.175/swust/" class="open-target">
+              打开实验管理系统
+            </a>
+          </li>
+          <li>
+            <a data-target="http://202.115.162.45:8080/reader/hwthau.php" class="open-target">
+              打开图书馆系统
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <script>
+      const casCookie = localStorage.getItem("cas");
+      if (!casCookie) {
+        location.href = "loginCas";
+      }
+      function handleGetSoaTicket(cookie, targets) {
+        return fetch("/api/swust/ticket", {
+          method: "post",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            cookie,
+            targets,
+          }),
+        });
+      }
+      function handleOpen(event) {
+        if (event.target.tagName === "A") {
+          const { target } = event.target.dataset;
+          if (target) {
+            handleGetSoaTicket(casCookie, [target])
+              .then((res) => {
+                return res.json();
+              })
+              .then((res) => {
+                if (res.code === 200) {
+                  open(res.data.tickets[0]);
+                  // location.href=res.data.tickets[0]
+                } else {
+                  throw new Error(res.msg);
+                }
+              })
+              .catch((err) => {
+                alert(err.message);
+              });
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
