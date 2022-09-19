@@ -73,6 +73,11 @@
               打开图书馆系统
             </a>
           </li>
+          <li>
+            <a class="open-target" onclick="handleShowTime()">
+              查看当前学期信息
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -93,8 +98,8 @@
           }),
         });
       }
-      if(/QBWebViewType/.test(navigator.userAgent)){
-        alert('学校部分系统会被QQ内置浏览器拦截，建议使用其他浏览器打开。')
+      if (/QBWebViewType/.test(navigator.userAgent)) {
+        alert("学校部分系统会被QQ内置浏览器拦截，建议使用其他浏览器打开。");
       }
       function handleOpen(event) {
         if (event.target.tagName === "A") {
@@ -118,14 +123,62 @@
                 }
               })
               .catch((err) => {
-                const tmp=confirm('打开失败，'+err.message+'，尝试重新登陆吗？');
-                if(tmp){
-                  localStorage.removeItem('cas');
-                  location.href='loginCas';
+                const tmp = confirm(
+                  "打开失败，" + err.message + "，尝试重新登陆吗？"
+                );
+                if (tmp) {
+                  localStorage.removeItem("cas");
+                  location.href = "loginCas";
                 }
               });
           }
         }
+      }
+
+      function handleShowTime() {
+        const ticket = handleGetSoaTicket(casCookie, [
+          "http://202.115.175.175/swust/",
+        ])
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.tickets[0];
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((ticket) => {
+            return fetch(
+              "/api/timetable/cookie?ticket=" + encodeURIComponent(ticket),
+              {
+                headers: {
+                  "content-type": "x-www-form-urlencoded",
+                },
+              }
+            );
+          })
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.cookie;
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((cookie) => {
+            return fetch("/api/timetable/time?cookie=" + encodeURIComponent(cookie));
+          }).then(res=>{
+            return res.text()
+          }).then(text=>{
+            alert(text)
+          })
+          .catch((err) => {
+            alert("发生错误，" + err.message);
+          });
       }
     </script>
   </body>

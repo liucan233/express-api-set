@@ -2,7 +2,7 @@ import { rsaUtils } from "@util/security";
 import got from "got-cjs";
 import { StatusCodes } from "http-status-codes";
 
-const { OK, MOVED_TEMPORARILY } = StatusCodes;
+const { OK, MOVED_TEMPORARILY, MOVED_PERMANENTLY } = StatusCodes;
 
 /**CAS页面地址 */
 const CAS_URL = "http://cas.swust.edu.cn",
@@ -105,16 +105,16 @@ export const fetchEnteredCasCookie = async (user: IUserInfo) => {
 };
 
 /**获取ticket需要的数据 */
-export interface ITicketReqBody{
-  cookie:string
-  targets:string[]
+export interface ITicketReqBody {
+  cookie: string;
+  targets: string[];
 }
 /**根据cookie和目标系统url，获取到目标系统的ticket */
-export const fetchTicket = async ({targets, cookie}:ITicketReqBody) => {
-  const tickets:string[]=[]
-  for(const target of targets){
-    const { hostname,protocol } = new URL(target)
-    const res = await got.get(CAS_URL +LOGIN_PATH +"?service=" + target, {
+export const fetchTicket = async ({ targets, cookie }: ITicketReqBody) => {
+  const tickets: string[] = [];
+  for (const target of targets) {
+    const { hostname, protocol } = new URL(target);
+    const res = await got.get(CAS_URL + LOGIN_PATH + "?service=" + target, {
       headers: {
         cookie,
         Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
@@ -122,13 +122,13 @@ export const fetchTicket = async ({targets, cookie}:ITicketReqBody) => {
         "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
         Host: new URL(CAS_URL).hostname,
         "Upgrade-Insecure-Requests": "1",
-        Referer: protocol+'//'+hostname,
+        Referer: protocol + "//" + hostname,
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
       },
       followRedirect: false,
-      throwHttpErrors: false
+      throwHttpErrors: false,
     });
-     const location = res.headers["location"];
+    const location = res.headers["location"];
     if (!location) {
       throw new TypeError(
         "未被CAS系统重定向，CAS系统返回状态码为" + res.statusCode
@@ -136,9 +136,38 @@ export const fetchTicket = async ({targets, cookie}:ITicketReqBody) => {
     }
     if (new RegExp(hostname).test(location)) {
       tickets.push(location);
-    } else{
+    } else {
       throw new Error("被重定向到" + location + "，不符合target");
     }
   }
   return tickets;
+};
+
+/**根据ticket获取cookie */
+export const getCookieByTicketAndRedirection = async (ticket: string) => {
+  const { host } = new URL(ticket);
+  const res = await got.get(ticket, {
+    followRedirect: false,
+    headers: {
+      Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
+      "Accept-Encoding": "gzip, deflate",
+      "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+      Host: host,
+      "Upgrade-Insecure-Requests": "1",
+      Referer: CAS_URL,
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
+    },
+  });
+  const { location } = res.headers;
+  if (res.statusCode < 300 || res.statusCode > 307) {
+    throw new RangeError("目标系统返回到状态码为" + res.statusCode+'，未被重定向');
+  }
+  if (!location || !location.match(host) || location.match("login")) {
+    throw new Error(`被重定向到${location}，与预期不符`);
+  }
+  if (res.headers["set-cookie"]) {
+    return res.headers["set-cookie"].join(";");
+  } else {
+    throw new Error("使用ticket获取cookie时发生未知错误");
+  }
 };

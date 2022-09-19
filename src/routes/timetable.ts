@@ -1,53 +1,72 @@
 import { Router } from "express";
 import StatusCodes from "http-status-codes";
-import { IReq, IRes } from "@shared/types";
-import {
-  fetchCaptchaAndExecution,
-  fetSOAPage,
-  getSOACookie,
-} from "@services/timetableService";
+import { IReq, IRes, IReqQuery } from "@shared/types";
+import { fetchTermAndWeeks } from "@services/timetableService";
+import { getCookieByTicketAndRedirection } from "@services/swustCasService";
 
 const router = Router();
 
 // Status codes
-const { OK, SEE_OTHER,BAD_REQUEST } = StatusCodes;
+const { OK, INTERNAL_SERVER_ERROR, BAD_REQUEST } = StatusCodes;
 
-router.get("/login", async (req: IReq, res: IRes) => {
-  const fetched = await fetchCaptchaAndExecution();
-  return res.status(OK).end(JSON.stringify(fetched));
-});
-
-interface ILoginForm {
-  user: string;
-  passwd: string;
-  captcha: string;
-  cookie: string;
+interface ITicket {
+  ticket: string;
+  [key: string]: string;
 }
-
-router.post("/login", async (req: IReq<ILoginForm>, res: IRes) => {
-  const { user, passwd, captcha, cookie } = req.body;
-  if (user && passwd && captcha && cookie) {
-
-    await getSOACookie(user, passwd, captcha, cookie)
-    .then(result=>{
-        if(result===null){
-            return Promise.reject(new TypeError('cookie为null'))
-        }
-        return fetSOAPage(result.join());
-    })
-    .then(page=>{
-        res.status(OK).end(page)
-    })
-    .catch(e=>{
-        console.log('catch',e.message)
-        res.status(BAD_REQUEST).end('user, passwd or captcha error')
-    });
+router.get("/cookie", async (req: IReqQuery<ITicket>, res: IRes) => {
+  const responseText = {
+    code: OK,
+    msg: "获取成功",
+    data: {
+      cookie: "",
+    },
+  };
+  if (!req.query.ticket) {
+    responseText.code = BAD_REQUEST;
+    responseText.msg = "请求参数不正确";
+    res.json(responseText);
+    return;
   }
-  return res.status(BAD_REQUEST).end()
+  try {
+    responseText.data.cookie = await getCookieByTicketAndRedirection(
+      req.query.ticket
+    );
+    res.json(responseText);
+  } catch (error) {
+    responseText.code = INTERNAL_SERVER_ERROR;
+    responseText.msg = error.message || "获取cookie发生未知错误";
+    res.json(responseText);
+  }
 });
 
-router.get('/',async (req: IReq, res: IRes)=>{
-
-})
+interface ICookie {
+  cookie: string;
+  [key: string]: string;
+}
+router.get("/time", async (req: IReqQuery<ICookie>, res: IRes) => {
+  const responseText = {
+    code: OK,
+    msg: "获取成功",
+    data: {
+      time: "",
+      weeks: "",
+      term: "",
+    },
+  };
+  if (!req.query.cookie) {
+    responseText.code = BAD_REQUEST;
+    responseText.msg = "请求参数不正确";
+    res.json(responseText);
+    return;
+  }
+  try {
+    responseText.data = await fetchTermAndWeeks(req.query.cookie);
+    res.json(responseText);
+  } catch (error) {
+    responseText.code = INTERNAL_SERVER_ERROR;
+    responseText.msg = error.message || "获取学期和周数时发生未知错误";
+    res.json(responseText);
+  }
+});
 
 export default router;
