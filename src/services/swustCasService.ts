@@ -159,9 +159,9 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
     },
   });
   const { location } = res.headers;
-  if (res.statusCode < 300 || res.statusCode > 307) {
-    throw new RangeError("目标系统返回到状态码为" + res.statusCode+'，未被重定向');
-  }
+  // if (res.statusCode < 300 || res.statusCode > 307) {
+  //   throw new RangeError("目标系统返回到状态码为" + res.statusCode+'，未被重定向');
+  // }
   if (!location || !location.match(host) || location.match("login")) {
     throw new Error(`被重定向到${location}，与预期不符`);
   }

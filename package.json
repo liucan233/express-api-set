@@ -28,14 +28,16 @@
     "@server": "dist/server",
     "@routes": "dist/routes",
     "@util": "dist/util",
-    "@models":"dist/models"
+    "@models": "dist/models"
   },
   "engines": {
     "node": ">=8.10.0"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cheerio": "^1.0.0-rc.12",
     "command-line-args": "^5.2.1",
+    "cookie": "^0.5.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
@@ -52,6 +54,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/command-line-args": "^5.2.0",
+    "@types/cookie": "^0.5.1",
     "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.14",
     "@types/find": "^0.2.1",

@@ -1,8 +1,13 @@
 import { Router } from "express";
 import StatusCodes from "http-status-codes";
 import { IReq, IRes, IReqQuery } from "@shared/types";
-import { fetchTermAndWeeks } from "@services/timetableService";
+import {
+  bindAexpsIdWithCookie,
+  fetchLabTimeTable,
+  fetchTermAndWeeks,
+} from "@services/timetableService";
 import { getCookieByTicketAndRedirection } from "@services/swustCasService";
+import cookieUtil from "cookie";
 
 const router = Router();
 
@@ -65,6 +70,43 @@ router.get("/time", async (req: IReqQuery<ICookie>, res: IRes) => {
   } catch (error) {
     responseText.code = INTERNAL_SERVER_ERROR;
     responseText.msg = error.message || "获取学期和周数时发生未知错误";
+    res.json(responseText);
+  }
+});
+
+router.get("/labTimeTable", async (req: IReqQuery<ICookie>, res: IRes) => {
+  const responseText = {
+    code: OK,
+    msg: "获取成功",
+    data: {
+      courses: [] as any,
+    },
+  };
+
+  let cookie = cookieUtil.parse(req.query.cookie)["JSESSIONID"];
+  cookie = cookieUtil.serialize("JSESSIONID", cookie);
+
+  if (!cookie) {
+    responseText.code = BAD_REQUEST;
+    responseText.msg = "请求参数不正确，cookie应该包含JSESSIONID=xxxx";
+    res.json(responseText);
+    return;
+  }
+
+  try {
+    await bindAexpsIdWithCookie(cookie);
+  } catch (error) {
+    responseText.code = INTERNAL_SERVER_ERROR;
+    responseText.msg = "绑定aexpsid为JSESSIONID时出错";
+    res.json(responseText);
+    return;
+  }
+  try {
+    responseText.data.courses = await fetchLabTimeTable(cookie);
+    res.json(responseText);
+  } catch (error) {
+    responseText.code = INTERNAL_SERVER_ERROR;
+    responseText.msg = error.message || "获取实验课表时发生未知错误";
     res.json(responseText);
   }
 });

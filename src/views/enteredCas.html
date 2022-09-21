@@ -78,6 +78,12 @@
               查看当前学期信息
             </a>
           </li>
+
+          <li>
+            <a class="open-target" onclick="handleShowLabCourses()">
+              查看实验课
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -98,8 +104,18 @@
           }),
         });
       }
-      if (/QBWebViewType/.test(navigator.userAgent)) {
-        alert("学校部分系统会被QQ内置浏览器拦截，建议使用其他浏览器打开。");
+
+      function handleError(msg) {
+        const tmp = confirm(msg + "，尝试重新登陆吗？");
+        if (tmp) {
+          localStorage.removeItem("cas");
+          location.href = "loginCas";
+        }
+      }
+      if (/(?:QBWebViewType)|(?:MicroMessenger)/.test(navigator.userAgent)) {
+        alert(
+          "学校部分系统会被QQ或微信内置浏览器拦截，建议使用外部浏览器打开。"
+        );
       }
       function handleOpen(event) {
         if (event.target.tagName === "A") {
@@ -111,7 +127,6 @@
               })
               .then((res) => {
                 if (res.code === 200) {
-                  // window.open(res.data.tickets[0]);
                   if (/QBWebViewType/.test(navigator.userAgent)) {
                     location.href = res.data.tickets[0];
                   } else {
@@ -123,13 +138,7 @@
                 }
               })
               .catch((err) => {
-                const tmp = confirm(
-                  "打开失败，" + err.message + "，尝试重新登陆吗？"
-                );
-                if (tmp) {
-                  localStorage.removeItem("cas");
-                  location.href = "loginCas";
-                }
+                handleError(err.message);
               });
           }
         }
@@ -170,14 +179,68 @@
             }
           })
           .then((cookie) => {
-            return fetch("/api/timetable/time?cookie=" + encodeURIComponent(cookie));
-          }).then(res=>{
-            return res.text()
-          }).then(text=>{
-            alert(text)
+            return fetch(
+              "/api/timetable/time?cookie=" + encodeURIComponent(cookie)
+            );
+          })
+          .then((res) => {
+            return res.text();
+          })
+          .then((text) => {
+            alert(text);
           })
           .catch((err) => {
-            alert("发生错误，" + err.message);
+            handleError(err.message);
+          });
+      }
+
+      function handleShowLabCourses() {
+        const ticket = handleGetSoaTicket(casCookie, [
+          "http://202.115.175.175/swust/",
+        ])
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.tickets[0];
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((ticket) => {
+            return fetch(
+              "/api/timetable/cookie?ticket=" + encodeURIComponent(ticket),
+              {
+                headers: {
+                  "content-type": "x-www-form-urlencoded",
+                },
+              }
+            );
+          })
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.cookie;
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((cookie) => {
+            return fetch(
+              "/api/timetable/labTimeTable?cookie=" + encodeURIComponent(cookie)
+            );
+          })
+          .then((res) => {
+            return res.text();
+          })
+          .then((text) => {
+            alert(text);
+          })
+          .catch((err) => {
+            handleError(err.message);
           });
       }
     </script>
