@@ -84,6 +84,11 @@
               查看实验课
             </a>
           </li>
+          <li>
+            <a class="open-target" onclick="handleShowCommonCourses()">
+              查看教务处课表
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -127,12 +132,12 @@
               })
               .then((res) => {
                 if (res.code === 200) {
-                  if (/QBWebViewType/.test(navigator.userAgent)) {
+                  // if (/QBWebViewType/.test(navigator.userAgent)) {
                     location.href = res.data.tickets[0];
-                  } else {
-                    //IOS禁止回调函数直接调用open方法
-                    location.href = `javascript:window.open('${res.data.tickets[0]}')`;
-                  }
+                  // } else {
+                  //   //IOS禁止回调函数直接调用open方法
+                  //   location.href = `javascript:window.open('${res.data.tickets[0]}')`;
+                  // }
                 } else {
                   throw new Error(res.msg);
                 }
@@ -231,6 +236,56 @@
           .then((cookie) => {
             return fetch(
               "/api/timetable/labTimeTable?cookie=" + encodeURIComponent(cookie)
+            );
+          })
+          .then((res) => {
+            return res.text();
+          })
+          .then((text) => {
+            alert(text);
+          })
+          .catch((err) => {
+            handleError(err.message);
+          });
+      }
+
+      function handleShowCommonCourses() {
+        const ticket = handleGetSoaTicket(casCookie, [
+          "http://202.115.175.175/swust/",
+        ])
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.tickets[0];
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((ticket) => {
+            return fetch(
+              "/api/timetable/cookie?ticket=" + encodeURIComponent(ticket),
+              {
+                headers: {
+                  "content-type": "x-www-form-urlencoded",
+                },
+              }
+            );
+          })
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.cookie;
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((cookie) => {
+            return fetch(
+              "/api/timetable/commonTimeTable?cookie=" + encodeURIComponent(cookie)
             );
           })
           .then((res) => {

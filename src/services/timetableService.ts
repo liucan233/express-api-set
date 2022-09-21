@@ -8,7 +8,8 @@ const { OK, MOVED_TEMPORARILY, MOVED_PERMANENTLY } = StatusCodes;
 
 const LAB_URL = "http://202.115.175.175",
   LAB_HOME = "/aexp/stuTop.jsp",
-  LAB_TABLE = "/teachn/teachnAction/index.action";
+  LAB_TABLE = "/teachn/teachnAction/index.action",
+  COMMON_TABLE = "/teachn/stutool";
 
 /**获取实验系统指定路径内容 */
 export const fetchContext = async (
@@ -67,10 +68,10 @@ export const fetchTermAndWeeks = async (cookie: string) => {
 export const bindAexpsIdWithCookie = async (cookie: string) => {
   let value = cookieUtil.parse(cookie)["JSESSIONID"];
 
-  const res = await got.get(LAB_URL + "/swust/;jsessionid=" + value, {
+  await got.get(LAB_URL + "/swust/;jsessionid=" + value, {
     headers: {
       cookie,
-      referer: "http://localhost:3000/",
+      referer: LAB_URL,
       Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
       "Accept-Encoding": "gzip, deflate",
       "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -95,18 +96,18 @@ interface ICourse {
   cancelable: boolean;
 }
 
-/**获取指定学期的实验课表 */
+/**获取当前学期的实验课表 */
 export const fetchLabTimeTable = async (cookie: string) => {
   let prePageUrl = new URL(LAB_URL + "/aexp/stuLeft.jsp"),
     curPageUrl = new URL(LAB_URL + LAB_TABLE),
     cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
-    newCookie = cookie + "; " + cookieUtil.serialize("jsessionid", cookieValue);
+    newCookie = cookie + "; " + cookieUtil.serialize("aexpsid", cookieValue);
 
   const courseList: ICourse[] = [];
   for (let i = 0; i < 50; i++) {
     // 获取课表html文本
     let body = await fetchContext(
-      curPageUrl.pathname + curPageUrl.hash,
+      curPageUrl.pathname + curPageUrl.search,
       newCookie,
       prePageUrl.toString()
     );
@@ -163,29 +164,43 @@ export const fetchLabTimeTable = async (cookie: string) => {
     }
 
     // 匹配下一页url
-    const nxtReg = /href="(\S+)">下一页\<\/a>/g;
-    // nxtReg.lastIndex = tableEndReg.lastIndex;
-    const nxt = nxtReg.exec(body);
-    if (nxt) {
-      const nxtPage = nxt[0].replace(nxtReg, "$1");
-      //下一页如果存在
-      const nxtPageUrl = new URL(
-        /^http:/.test(nxtPage) ? nxtPage : LAB_URL + nxtPage
-      );
-      if (
-        nxtPageUrl.searchParams.get("page.pageNum") ===
-        curPageUrl.searchParams.get("page.pageNum")
-      ) {
-        //如果页数和当前相等，证明已经到最后一页
-        break;
-      } else {
-        prePageUrl = curPageUrl;
-        curPageUrl = nxtPageUrl;
-      }
+
+    const $nextPage = $html("ul li a", "#myPage").eq(2),
+      nextHref = $nextPage.attr("href");
+    if ($nextPage.text() !== "下一页" || !nextHref) {
+      logger.err("查找课表下一页位置出错");
+      break;
+    }
+
+    const nxtPageUrl = new URL(LAB_URL + nextHref);
+
+    if (
+      nxtPageUrl.searchParams.get("page.pageNum") ===
+      curPageUrl.searchParams.get("page.pageNum")
+    ) {
+      //如果页数和当前相等，证明已经到最后一页
+      break;
     } else {
-      //如果不存在
-      throw new TypeError("未获取到下一页url");
+      prePageUrl = curPageUrl;
+      curPageUrl = nxtPageUrl;
     }
   }
   return courseList;
+};
+
+/**获取当前学期的非实验课 */
+export const fetchCommonTimetable = async (cookie: string) => {
+  const cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
+    newCookie = cookieUtil.serialize("aexpsid", cookieValue) + "; " + cookie;
+
+  await fetchContext(LAB_TABLE, newCookie, LAB_URL);
+  const res = await got.post(LAB_URL + COMMON_TABLE, {
+    headers: {
+      cookie: newCookie,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "op=getJwTimeTable&time=" + new Date(),
+  });
+
+  return res.body;
 };
