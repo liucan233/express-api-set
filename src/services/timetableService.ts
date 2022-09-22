@@ -1,10 +1,7 @@
 import got from "got-cjs";
-import { StatusCodes } from "http-status-codes";
 import logger from "jet-logger";
 import cookieUtil from "cookie";
 import { load } from "cheerio";
-
-const { OK, MOVED_TEMPORARILY, MOVED_PERMANENTLY } = StatusCodes;
 
 const LAB_URL = "http://202.115.175.175",
   LAB_HOME = "/aexp/stuTop.jsp",
@@ -188,12 +185,34 @@ export const fetchLabTimeTable = async (cookie: string) => {
   return courseList;
 };
 
+/**教务系统返回的课表结构 */
+interface IJWCommon{
+  jw_course_code: string,
+  base_teacher_name: string,
+  base_room_name: string,
+  week: string,
+  jw_task_book_no: string,
+  jw_course_name: string,
+  section_end: string,
+  week_day: string,
+  section: string,
+  base_teacher_no: string,
+  section_start: string
+}
 /**获取当前学期的非实验课 */
 export const fetchCommonTimetable = async (cookie: string) => {
   const cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
     newCookie = cookieUtil.serialize("aexpsid", cookieValue) + "; " + cookie;
 
-  await fetchContext(LAB_TABLE, newCookie, LAB_URL);
+  try {
+    const body=await fetchContext(LAB_TABLE, newCookie, LAB_URL);
+    if(!body.match('class="tablelist">')){
+      throw new Error('访问实验系统课表页面失败');
+    }
+  } catch (e) {
+    logger.err(e.message)
+    throw new Error('向教务系统绑定当前实验系统cookie失败');
+  }
   const res = await got.post(LAB_URL + COMMON_TABLE, {
     headers: {
       cookie: newCookie,
@@ -202,5 +221,14 @@ export const fetchCommonTimetable = async (cookie: string) => {
     body: "op=getJwTimeTable&time=" + new Date(),
   });
 
-  return res.body;
+  const resJson:IJWCommon[]=JSON.parse(res.body),courseList:ICourse[]=[];
+  // for(let i=0;i<resJson.length;i++){
+  //   const course=resJson[i];
+  //   courseList.push({
+  //     name: course['jw_course_name'],
+  //     day: Number(course['week_day']),
+  //   })
+  // }
+
+  return resJson;
 };
