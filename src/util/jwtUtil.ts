@@ -1,5 +1,5 @@
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
-import envVars from '../shared/env-vars';
+import envVars from '../shared/envVars';
 
 
 // **** Variables **** //
