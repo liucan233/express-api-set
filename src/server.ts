@@ -36,9 +36,26 @@ if (envVars.nodeEnv === 'production') {
     contentSecurityPolicy: false,
     crossOriginOpenerPolicy: false,
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false
+    crossOriginResourcePolicy: {
+      policy: 'cross-origin'
+    },
   }));
 }
+
+// CORS
+app.all("*", (req, res, next)=>{
+	res.header("Access-Control-Allow-Origin", "*");
+  
+	res.header("Access-Control-Allow-Headers", "*");
+  
+	res.header("Access-Control-Allow-Methods", req.method);
+  
+	if (req.method == 'OPTIONS'){
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
 
 
 // **** Add API routes **** //
