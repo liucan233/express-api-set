@@ -41,6 +41,39 @@
         text-decoration: underline;
         font-size: 17px;
       }
+      .loading-wrap {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        left: 0;
+        top: 0;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        z-index: -1;
+      }
+      .loading {
+        width: 50px;
+        height: 50px;
+        margin: 40vh auto;
+        display: inline-block;
+      }
+      .loading-wrap[data-active="true"] {
+        opacity: 1;
+        z-index: 100;
+      }
+      .loading-wrap[data-active="true"] > .loading {
+        animation: rotate 2s linear infinite;
+      }
+      @keyframes rotate {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -92,6 +125,35 @@
         </ul>
       </div>
     </div>
+    <div class="loading-wrap">
+      <svg
+        class="loading"
+        viewBox="0 0 1024 1024"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M204.8 204.8m-204.8 0a204.8 204.8 0 1 0 409.6 0 204.8 204.8 0 1 0-409.6 0Z"
+          fill="#EBF2FC"
+          p-id="6423"
+        ></path>
+        <path
+          d="M819.2 204.8m-204.8 0a204.8 204.8 0 1 0 409.6 0 204.8 204.8 0 1 0-409.6 0Z"
+          fill="#B5D2F3"
+          p-id="6424"
+        ></path>
+        <path
+          d="M819.2 819.2m-204.8 0a204.8 204.8 0 1 0 409.6 0 204.8 204.8 0 1 0-409.6 0Z"
+          fill="#7FB0EA"
+          p-id="6425"
+        ></path>
+        <path
+          d="M204.8 819.2m-204.8 0a204.8 204.8 0 1 0 409.6 0 204.8 204.8 0 1 0-409.6 0Z"
+          fill="#4A90E2"
+          p-id="6426"
+        ></path>
+      </svg>
+    </div>
     <script>
       const casCookie = localStorage.getItem("cas");
       if (!casCookie) {
@@ -126,30 +188,33 @@
         if (event.target.tagName === "A") {
           const { target } = event.target.dataset;
           if (target) {
+            handleSwitchLoading();
             handleGetSoaTicket(casCookie, [target])
               .then((res) => {
                 return res.json();
               })
               .then((res) => {
                 if (res.code === 200) {
-                  // if (/QBWebViewType/.test(navigator.userAgent)) {
+                  if (/QBWebViewType/.test(navigator.userAgent)) {
                     location.href = res.data.tickets[0];
-                  // } else {
-                  //   //IOS禁止回调函数直接调用open方法
-                  //   location.href = `javascript:window.open('${res.data.tickets[0]}')`;
-                  // }
+                  } else {
+                    //IOS禁止回调函数直接调用open方法
+                    location.href = `javascript:window.open('${res.data.tickets[0]}')`;
+                  }
                 } else {
                   throw new Error(res.msg);
                 }
               })
               .catch((err) => {
                 handleError(err.message);
-              });
+              })
+              .finally(handleSwitchLoading);
           }
         }
       }
 
       function handleShowTime() {
+        handleSwitchLoading();
         const ticket = handleGetSoaTicket(casCookie, [
           "http://202.115.175.175/swust/",
         ])
@@ -196,10 +261,12 @@
           })
           .catch((err) => {
             handleError(err.message);
-          });
+          })
+          .finally(handleSwitchLoading);
       }
 
       function handleShowLabCourses() {
+        handleSwitchLoading();
         const ticket = handleGetSoaTicket(casCookie, [
           "http://202.115.175.175/swust/",
         ])
@@ -246,10 +313,12 @@
           })
           .catch((err) => {
             handleError(err.message);
-          });
+          })
+          .finally(handleSwitchLoading);
       }
 
       function handleShowCommonCourses() {
+        handleSwitchLoading();
         const ticket = handleGetSoaTicket(casCookie, [
           "http://202.115.175.175/swust/",
         ])
@@ -285,7 +354,8 @@
           })
           .then((cookie) => {
             return fetch(
-              "/api/timetable/commonTimeTable?cookie=" + encodeURIComponent(cookie)
+              "/api/timetable/commonTimeTable?cookie=" +
+                encodeURIComponent(cookie)
             );
           })
           .then((res) => {
@@ -296,7 +366,14 @@
           })
           .catch((err) => {
             handleError(err.message);
-          });
+          })
+          .finally(handleSwitchLoading);
+      }
+
+      function handleSwitchLoading() {
+        const loadingEl = document.querySelector(".loading-wrap");
+        const flag = loadingEl.getAttribute("data-active")==='true';
+        loadingEl.setAttribute("data-active", flag ? "false" : "true");
       }
     </script>
   </body>
