@@ -48,6 +48,7 @@ interface ICommonCourse {
   place: string[];
   week: string[];
   section: string[];
+  day: string[];
   tasks?: string[];
 }
 
@@ -64,7 +65,7 @@ export const covertJwCourse = (jwArr: IJWCourse[]): ICommonCourse[] => {
     ansArr: ICommonCourse[] = [];
   for (const c of jwArr) {
     /**唯一的标识一门课 */
-    const unique = c.jw_course_code + c.base_teacher_name;
+    const unique = c.jw_course_code + c.base_teacher_name+c.week_day;
     const index = map.get(unique);
     const time = `${c.section_start}-${c.section_end}`;
     if (index === undefined) {
@@ -76,12 +77,14 @@ export const covertJwCourse = (jwArr: IJWCourse[]): ICommonCourse[] => {
         place: [c.base_room_name],
         week: [c.week],
         section: [time],
+        day: [c.week_day]
       });
     } else {
-      const { place, week, section } = ansArr[index];
+      const { place, week, section,day } = ansArr[index];
       place.push(c.base_room_name);
       week.push(c.week);
       section.push(time);
+      day.push(c.week_day)
     }
   }
   return ansArr;
@@ -133,13 +136,15 @@ export const covertLabCourse = (labArr: ILabCourse[]): ICommonCourse[] => {
         week: [parsedTime.week],
         section: [time],
         tasks: [c.task],
+        day: [parsedTime.day]
       });
     } else {
-      const { place, week, section, tasks } = ansArr[index];
+      const { place, week, section, tasks,day } = ansArr[index];
       place.push(c.place);
       week.push(parsedTime.week);
       section.push(time);
       tasks?.push(c.task);
+      day.push(parsedTime.day)
     }
   }
   return ansArr;
