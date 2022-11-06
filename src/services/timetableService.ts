@@ -196,7 +196,7 @@ export const fetchLabTimeTable = async (cookie: string) => {
         new URL(LAB_URL + endPageHref).searchParams.get("page.pageNum") ?? -1
       );
 
-    if (nxtPageNum >= endPageNum) {
+    if (nxtPageNum > endPageNum) {
       //如果页数和当前相等，证明已经到最后一页
       break;
     } else {
