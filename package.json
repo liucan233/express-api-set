@@ -31,7 +31,7 @@
     "@models": "dist/models"
   },
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=16.10.0"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",

@@ -69,7 +69,7 @@ export const fetchTermAndWeeks = async (cookie: string) => {
 
 /**绑定aexpsid，实验系统部分页面实验aexpsid，值与cookie一致 */
 export const bindAexpsIdWithCookie = async (cookie: string) => {
-  let value = cookieUtil.parse(cookie)["JSESSIONID"];
+  const value = cookieUtil.parse(cookie)["JSESSIONID"];
 
   await got.get(LAB_URL + "/swust/;jsessionid=" + value, {
     headers: {
@@ -102,8 +102,8 @@ interface ICourse {
 /**获取当前学期的实验课表 */
 export const fetchLabTimeTable = async (cookie: string) => {
   let prePageUrl = new URL(LAB_URL + LAB_TABLE),
-    curPageUrl = new URL(LAB_URL + LAB_TABLE),
-    cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
+    curPageUrl = new URL(LAB_URL + LAB_TABLE);
+  const cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
     newCookie = cookie + "; " + cookieUtil.serialize("aexpsid", cookieValue);
 
   const courseList: ILabCourse[] = [];
@@ -120,9 +120,9 @@ export const fetchLabTimeTable = async (cookie: string) => {
     const $html = load(body),
       $tbody = $html("tbody", ".tablelist");
 
-    let $table=$tbody.eq(1);
-    if(!$table.is('tbody')){
-      $table=$tbody.eq(0);
+    let $table = $tbody.eq(1);
+    if (!$table.is("tbody")) {
+      $table = $tbody.eq(0);
     }
 
     if (!$table.is("tbody")) {
@@ -172,21 +172,31 @@ export const fetchLabTimeTable = async (cookie: string) => {
       courseList.push(courseObj);
     }
 
-    // 匹配下一页url
-
-    const $nextPage = $html("ul li a", "#myPage").eq(2),
-      nextHref = $nextPage.attr("href");
-    if ($nextPage.text() !== "下一页" || !nextHref) {
-      logger.err("查找课表下一页位置出错");
-      break;
+    // 列表下面的上一页、下一页和末页按钮
+    const $btnList = $html("ul li a", "#myPage"),
+      $nextBtn = $btnList.eq(2),
+      $endBtn = $btnList.eq(3),
+      endPageHref = $endBtn.attr("href"),
+      nextPageHref = $nextBtn.attr("href");
+    if (
+      $endBtn.text() !== "末页" ||
+      !endPageHref ||
+      $nextBtn.text() !== "下一页" ||
+      !nextPageHref
+    ) {
+      throw new Error("查找课表下一页位置出错");
     }
 
-    const nxtPageUrl = new URL(LAB_URL + nextHref);
+    const nxtPageUrl = new URL(LAB_URL + nextPageHref);
 
-    if (
-      nxtPageUrl.searchParams.get("page.pageNum") ===
-      curPageUrl.searchParams.get("page.pageNum")
-    ) {
+    const nxtPageNum = Number(
+        nxtPageUrl.searchParams.get("page.pageNum") ?? 99
+      ),
+      endPageNum = Number(
+        new URL(LAB_URL + endPageHref).searchParams.get("page.pageNum") ?? -1
+      );
+
+    if (nxtPageNum >= endPageNum) {
       //如果页数和当前相等，证明已经到最后一页
       break;
     } else {
@@ -219,7 +229,6 @@ export const fetchCommonTimetable = async (cookie: string) => {
       throw new Error("访问实验系统课表页面失败");
     }
   } catch (e) {
-    logger.err(e.message);
     throw new Error("向教务系统绑定当前实验系统cookie失败");
   }
   const res = await got.post(LAB_URL + COMMON_TABLE, {
@@ -227,9 +236,9 @@ export const fetchCommonTimetable = async (cookie: string) => {
       cookie: newCookie,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: "op=getJwTimeTable&time=" + new Date(),
+    body: "op=getJwTimeTable",
   });
 
-  const resJson: IJWCourse[] = JSON.parse(res.body);
+  const resJson = JSON.parse(res.body) as IJWCourse[];
   return covertJwCourse(resJson);
 };
