@@ -2,13 +2,11 @@ import got from "got-cjs";
 import logger from "jet-logger";
 import cookieUtil from "cookie";
 import { load } from "cheerio";
-import { map } from "cheerio/lib/api/traversing";
 import {
   covertJwCourse,
   covertLabCourse,
   IJWCourse,
   ILabCourse,
-  parseTimeText,
 } from "@util/timetable";
 
 const LAB_URL = "http://202.115.175.175",
@@ -103,7 +101,7 @@ interface ICourse {
 
 /**获取当前学期的实验课表 */
 export const fetchLabTimeTable = async (cookie: string) => {
-  let prePageUrl = new URL(LAB_URL + "/aexp/stuLeft.jsp"),
+  let prePageUrl = new URL(LAB_URL + LAB_TABLE),
     curPageUrl = new URL(LAB_URL + LAB_TABLE),
     cookieValue = cookieUtil.parse(cookie)["JSESSIONID"],
     newCookie = cookie + "; " + cookieUtil.serialize("aexpsid", cookieValue);
@@ -116,11 +114,16 @@ export const fetchLabTimeTable = async (cookie: string) => {
       newCookie,
       prePageUrl.toString()
     );
-    body = body.replace(/(?:\n|\t)+/g, "");
+    body = body.replace(/\s+/g, " ");
 
     // 解析html
     const $html = load(body),
-      $table = $html("tbody", ".tablelist").eq(1);
+      $tbody = $html("tbody", ".tablelist");
+
+    let $table=$tbody.eq(1);
+    if(!$table.is('tbody')){
+      $table=$tbody.eq(0);
+    }
 
     if (!$table.is("tbody")) {
       throw new Error("定位课程表table时出错");
