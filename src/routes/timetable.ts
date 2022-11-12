@@ -38,9 +38,13 @@ router.get("/cookie", async (req: IReqQuery<ITicket>, res: IRes) => {
       req.query.ticket
     );
     res.json(responseText);
-  } catch (error) {
+  } catch (error:unknown) {
     responseText.code = INTERNAL_SERVER_ERROR;
-    responseText.msg = error.message || "获取cookie发生未知错误";
+    if(error instanceof Error){
+      responseText.msg=error.message;
+    } else {
+      responseText.msg = "获取cookie发生未知错误";
+    }
     res.json(responseText);
   }
 });
@@ -70,7 +74,11 @@ router.get("/time", async (req: IReqQuery<ICookie>, res: IRes) => {
     res.json(responseText);
   } catch (error) {
     responseText.code = INTERNAL_SERVER_ERROR;
-    responseText.msg = error.message || "获取学期和周数时发生未知错误";
+    if(error instanceof Error){
+      responseText.msg=error.message;
+    } else {
+      responseText.msg = "获取学期和周数时发生未知错误";
+    }
     res.json(responseText);
   }
 });
@@ -80,7 +88,7 @@ router.get("/labTimeTable", async (req: IReqQuery<ICookie>, res: IRes) => {
     code: OK,
     msg: "获取成功",
     data: {
-      courses: [] as any,
+      courses: [] as unknown,
     },
   };
 
@@ -107,7 +115,11 @@ router.get("/labTimeTable", async (req: IReqQuery<ICookie>, res: IRes) => {
     res.json(responseText);
   } catch (error) {
     responseText.code = INTERNAL_SERVER_ERROR;
-    responseText.msg = error.message || "获取实验课表时发生未知错误";
+    if(error instanceof Error){
+      responseText.msg=error.message;
+    } else {
+      responseText.msg = "获取实验课表时发生未知错误";
+    }
     res.json(responseText);
   }
 });
@@ -117,12 +129,12 @@ router.get("/commonTimetable", async (req: IReqQuery<ICookie>, res: IRes) => {
     code: OK,
     msg: "获取成功",
     data: {
-      courses: [] as any,
+      courses: [] as unknown,
     },
   };
 
-  let parsedCookie = cookieUtil.parse(req.query.cookie),
-    cookie = parsedCookie["JSESSIONID"];
+  const parsedCookie = cookieUtil.parse(req.query.cookie);
+   let cookie = parsedCookie["JSESSIONID"];
   cookie = cookieUtil.serialize("JSESSIONID", cookie);
 
   /**是否进行过cookie绑定 */
@@ -150,7 +162,11 @@ router.get("/commonTimetable", async (req: IReqQuery<ICookie>, res: IRes) => {
     res.json(responseText);
   } catch (error) {
     responseText.code = INTERNAL_SERVER_ERROR;
-    responseText.msg = error.message || "获取教务处课表时发生未知错误";
+    if(error instanceof Error){
+      responseText.msg=error.message;
+    } else {
+      responseText.msg = "获取教务处课表时发生未知错误";
+    }
     res.json(responseText);
   }
 });

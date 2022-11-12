@@ -1,5 +1,4 @@
 import got from "got-cjs";
-import logger from "jet-logger";
 import cookieUtil from "cookie";
 import { load } from "cheerio";
 import {
@@ -85,19 +84,6 @@ export const bindAexpsIdWithCookie = async (cookie: string) => {
     followRedirect: false,
   });
 };
-
-/**课程具体信息 */
-interface ICourse {
-  day: number;
-  week: number;
-  start: number;
-  end: number;
-  name: string;
-  task: string;
-  place: string;
-  teacher: string;
-  cancelable: boolean;
-}
 
 /**获取当前学期的实验课表 */
 export const fetchLabTimeTable = async (cookie: string) => {
@@ -205,17 +191,6 @@ export const fetchLabTimeTable = async (cookie: string) => {
     }
   }
   return covertLabCourse(courseList);
-};
-
-/**将汉字星期数转为数字 */
-const getWeekFromString = (week: string) => {
-  const arr = ["一", "二", "三", "四", "五", "六", "日"];
-  return (
-    1 +
-    arr.findIndex((v) => {
-      return week.includes("星期" + v);
-    })
-  );
 };
 
 /**获取当前学期的非实验课 */

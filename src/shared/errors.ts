@@ -1,62 +1,38 @@
-import HttpStatusCodes from 'http-status-codes';
+import HttpStatusCode from "http-status-codes";
 
+export abstract class RequestError extends Error {
+  public readonly code = HttpStatusCode.BAD_REQUEST;
 
-export abstract class CustomError extends Error {
-
-  public readonly HttpStatus = HttpStatusCodes.BAD_REQUEST;
-
-  constructor(msg: string, httpStatus: number) {
+  constructor(msg: string, code: number) {
     super(msg);
-    this.HttpStatus = httpStatus;
+    this.code = code;
   }
 }
 
-export class ParamMissingError extends CustomError {
+export class ParamInvalidError extends RequestError {
+  public static readonly Msg =
+    "One or more of the required was missing or invalid.";
+  public static readonly code = HttpStatusCode.BAD_REQUEST;
 
-  public static readonly Msg = 'One or more of the required parameters was missing.';
-  public static readonly HttpStatus = HttpStatusCodes.BAD_REQUEST;
-
-  constructor() {
-    super(ParamMissingError.Msg, ParamMissingError.HttpStatus);
+  constructor(msg?: string) {
+    super(msg||ParamInvalidError.Msg, ParamInvalidError.code);
   }
 }
 
-export class ParamInvalidError extends CustomError {
+export class UnauthorizedError extends RequestError {
+  public static readonly Msg = "Login failed";
+  public static readonly code = HttpStatusCode.UNAUTHORIZED;
 
-  public static readonly Msg = 'One or more of the required was missing or invalid.';
-  public static readonly HttpStatus = HttpStatusCodes.BAD_REQUEST;
-
-  constructor() {
-    super(ParamInvalidError.Msg, ParamMissingError.HttpStatus);
+  constructor(msg?: string) {
+    super(msg||UnauthorizedError.Msg, UnauthorizedError.code);
   }
 }
 
-export class ValidatorFnError extends CustomError {
+export class ServerError extends RequestError {
+  public static readonly Msg = "internal server error";
+  public static readonly code = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
-  public static readonly Msg = 'Validator function failed. function name: ';
-  public static readonly HttpStatus = HttpStatusCodes.BAD_REQUEST;
-
-  constructor(fnName: string) {
-    super(ValidatorFnError.Msg + fnName, ParamMissingError.HttpStatus);
-  }
-}
-
-export class UserNotFoundError extends CustomError {
-
-  public static readonly Msg = 'A user with the given id does not exists in the database.';
-  public static readonly HttpStatus = HttpStatusCodes.NOT_FOUND;
-
-  constructor() {
-    super(UserNotFoundError.Msg, UserNotFoundError.HttpStatus);
-  }
-}
-
-export class UnauthorizedError extends CustomError {
-
-  public static readonly Msg = 'Login failed';
-  public static readonly HttpStatus = HttpStatusCodes.UNAUTHORIZED;
-
-  constructor() {
-    super(UnauthorizedError.Msg, UnauthorizedError.HttpStatus);
+  constructor(msg?: string) {
+    super(msg||ServerError.Msg, ServerError.code);
   }
 }

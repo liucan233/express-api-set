@@ -122,6 +122,11 @@
               查看教务处课表
             </a>
           </li>
+          <li>
+            <a class="open-target" onclick="handleShowExam()">
+              查看考试安排
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -363,6 +368,50 @@
           })
           .then((text) => {
             alert(text);
+          })
+          .catch((err) => {
+            handleError(err.message);
+          })
+          .finally(handleSwitchLoading);
+      }
+
+      function handleShowExam() {
+        handleSwitchLoading();
+        const ticket = handleGetSoaTicket(casCookie, [
+          "https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=studentPortal:DEFAULT_EVENT",
+        ])
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res.data.tickets[0];
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((ticket) => {
+            return fetch(
+              "/api/dean/exam?ticket=" + encodeURIComponent(ticket),
+              {
+                headers: {
+                  "content-type": "x-www-form-urlencoded",
+                },
+              }
+            );
+          })
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res;
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((res) => {
+            alert(JSON.stringify(res));
           })
           .catch((err) => {
             handleError(err.message);
