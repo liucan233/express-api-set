@@ -6,7 +6,7 @@ import { load } from "cheerio";
 import cookieUtil from "cookie";
 import { IExamInfo, parseExamFromTable } from "@util/matrixDean";
 
-const EXAM_PATH = "/acadmicManager/index.cfm?event=studentPortal:examTable",
+export const EXAM_PATH = "/acadmicManager/index.cfm?event=studentPortal:examTable",
   DEAN_URL = "https://matrix.dean.swust.edu.cn";
 
 /**获取教务处的考试安排 */

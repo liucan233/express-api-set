@@ -123,9 +123,7 @@
             </a>
           </li>
           <li>
-            <a class="open-target" onclick="handleShowExam()">
-              查看考试安排
-            </a>
+            <a class="open-target" onclick="handleShowExam()"> 查看考试安排 </a>
           </li>
         </ul>
       </div>
@@ -377,29 +375,11 @@
 
       function handleShowExam() {
         handleSwitchLoading();
-        const ticket = handleGetSoaTicket(casCookie, [
-          "https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=studentPortal:DEFAULT_EVENT",
-        ])
-          .then((res) => {
-            return res.json();
-          })
-          .then((res) => {
-            if (res.code === 200) {
-              return res.data.tickets[0];
-            } else {
-              throw new Error("返回状态码为" + res.code);
-            }
-          })
-          .then((ticket) => {
-            return fetch(
-              "/api/dean/exam?ticket=" + encodeURIComponent(ticket),
-              {
-                headers: {
-                  "content-type": "x-www-form-urlencoded",
-                },
-              }
-            );
-          })
+        fetch("/api/dean/exam?cas=" + encodeURIComponent(casCookie), {
+          headers: {
+            "content-type": "x-www-form-urlencoded",
+          },
+        })
           .then((res) => {
             return res.json();
           })
@@ -421,7 +401,7 @@
 
       function handleSwitchLoading() {
         const loadingEl = document.querySelector(".loading-wrap");
-        const flag = loadingEl.getAttribute("data-active")==='true';
+        const flag = loadingEl.getAttribute("data-active") === "true";
         loadingEl.setAttribute("data-active", flag ? "false" : "true");
       }
     </script>

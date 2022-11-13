@@ -34,8 +34,8 @@ export const getEncodedPasswd = async (passwd: string, cookie: string) => {
     .get(CAS_URL + KEY_PATH, {
       headers: { cookie },
     })
-    .then<IRSAParams>((res) => {
-      return JSON.parse(res.body);
+    .then((res) => {
+      return JSON.parse(res.body) as IRSAParams;
     });
   if (!exponent || !modulus) {
     throw new TypeError(`指数为${exponent}，模数为${modulus}`);
@@ -131,7 +131,7 @@ export const fetchTicket = async ({ targets, cookie }: ITicketReqBody) => {
     const location = res.headers["location"];
     if (!location) {
       throw new TypeError(
-        "未被CAS系统重定向，CAS系统返回状态码为" + res.statusCode
+        `未被CAS系统重定向，CAS系统返回状态码为${res.statusCode}`
       );
     }
     if (new RegExp(hostname).test(location)) {
@@ -163,7 +163,7 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
   //   throw new RangeError("目标系统返回到状态码为" + res.statusCode+'，未被重定向');
   // }
   if (!location || !location.match(host) || location.match("login")) {
-    throw new Error(`被重定向到${location}，与预期不符`);
+    throw new Error(`被重定向到${location as string}，与预期不符`);
   }
   if (res.headers["set-cookie"]) {
     return res.headers["set-cookie"].join(";");
