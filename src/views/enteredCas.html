@@ -82,29 +82,16 @@
         <h1>登陆Cas页面成功</h1>
         <ul onclick="handleOpen(event)">
           <li>
-            <a
-              class="open-target"
-              data-target="https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=studentPortal:DEFAULT_EVENT"
-              >打开教务系统</a
-            >
+            <a class="open-target" data-target="matrix">打开教务系统</a>
           </li>
           <li>
-            <a data-target="http://soa.swust.edu.cn/" class="open-target">
-              打开一站式服务大厅
-            </a>
+            <a data-target="soa" class="open-target"> 打开一站式服务大厅 </a>
           </li>
           <li>
-            <a data-target="http://202.115.175.175/swust/" class="open-target">
-              打开实验管理系统
-            </a>
+            <a data-target="lab" class="open-target"> 打开实验管理系统 </a>
           </li>
           <li>
-            <a
-              data-target="http://202.115.162.45:8080/reader/hwthau.php"
-              class="open-target"
-            >
-              打开图书馆系统
-            </a>
+            <a data-target="reader" class="open-target"> 打开图书馆系统 </a>
           </li>
           <li>
             <a class="open-target" onclick="handleShowTime()">
@@ -162,15 +149,15 @@
       if (!casCookie) {
         location.href = "loginCas";
       }
-      function handleGetSoaTicket(cookie, targets) {
-        return fetch("/api/swust/ticket", {
+      function handleGetSoaTicket(cookie, target) {
+        return fetch("/api/cas/ticket", {
           method: "post",
           headers: {
             "content-type": "application/json",
           },
           body: JSON.stringify({
             cookie,
-            targets,
+            target,
           }),
         });
       }
@@ -192,17 +179,17 @@
           const { target } = event.target.dataset;
           if (target) {
             handleSwitchLoading();
-            handleGetSoaTicket(casCookie, [target])
+            handleGetSoaTicket(casCookie, target)
               .then((res) => {
                 return res.json();
               })
               .then((res) => {
                 if (res.code === 200) {
                   if (/QBWebViewType/.test(navigator.userAgent)) {
-                    location.href = res.data.tickets[0];
+                    location.href = res.data.ticket;
                   } else {
                     //IOS禁止回调函数直接调用open方法
-                    location.href = `javascript:window.open('${res.data.tickets[0]}')`;
+                    location.href = `javascript:window.open('${res.data.ticket}')`;
                   }
                 } else {
                   throw new Error(res.msg);
@@ -218,15 +205,13 @@
 
       function handleShowTime() {
         handleSwitchLoading();
-        const ticket = handleGetSoaTicket(casCookie, [
-          "http://202.115.175.175/swust/",
-        ])
+        const ticket = handleGetSoaTicket(casCookie, "lab")
           .then((res) => {
             return res.json();
           })
           .then((res) => {
             if (res.code === 200) {
-              return res.data.tickets[0];
+              return res.data.ticket;
             } else {
               throw new Error("返回状态码为" + res.code);
             }
@@ -270,15 +255,13 @@
 
       function handleShowLabCourses() {
         handleSwitchLoading();
-        const ticket = handleGetSoaTicket(casCookie, [
-          "http://202.115.175.175/swust/",
-        ])
+        const ticket = handleGetSoaTicket(casCookie, "lab")
           .then((res) => {
             return res.json();
           })
           .then((res) => {
             if (res.code === 200) {
-              return res.data.tickets[0];
+              return res.data.ticket;
             } else {
               throw new Error("返回状态码为" + res.code);
             }
@@ -322,15 +305,13 @@
 
       function handleShowCommonCourses() {
         handleSwitchLoading();
-        const ticket = handleGetSoaTicket(casCookie, [
-          "http://202.115.175.175/swust/",
-        ])
+        const ticket = handleGetSoaTicket(casCookie, "lab")
           .then((res) => {
             return res.json();
           })
           .then((res) => {
             if (res.code === 200) {
-              return res.data.tickets[0];
+              return res.data.ticket;
             } else {
               throw new Error("返回状态码为" + res.code);
             }

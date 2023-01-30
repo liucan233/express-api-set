@@ -9,7 +9,7 @@ const captcha = document.querySelector(".captcha"),
   captchaImg=document.querySelector('.captchaImg')
 
 function handleStartup() {
-  fetch("./api/swust/loginCas")
+  fetch("./api/cas/login")
     .then((res) => {
       return res.json();
     })
@@ -28,7 +28,7 @@ function handleSubmit(e) {
   params.set('cookie',cookie.value);
   params.set('passwd',passwd.value);
   params.set('captcha',captcha.value)
-  fetch("./api/swust/loginCas", {
+  fetch("./api/cas/login", {
     method: "post",
     body: params.toString(),
     headers: {

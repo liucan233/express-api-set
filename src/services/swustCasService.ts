@@ -1,8 +1,10 @@
 import { rsaUtils } from "@util/security";
 import got from "got-cjs";
-import { StatusCodes } from "http-status-codes";
+// import { StatusCodes } from "http-status-codes";
+import logger from "jet-logger";
+// import cookieUtil from "cookie";
 
-const { OK, MOVED_TEMPORARILY, MOVED_PERMANENTLY } = StatusCodes;
+// const { OK, MOVED_TEMPORARILY, MOVED_PERMANENTLY } = StatusCodes;
 
 /**CAS页面地址 */
 const CAS_URL = "http://cas.swust.edu.cn",
@@ -52,10 +54,18 @@ export const fetchCaptchaImage = async (cookie: string) => {
   const res = await got.get(CAS_URL + CAPTCHA_PATH, {
     headers: { cookie },
   });
-  const mime = (
-    /image\/\w+/.exec(res.headers["content-type"] as string) as RegExpExecArray
-  )[0];
-  return `data:${mime};base64,` + res.rawBody.toString("base64");
+  const contentType = res.headers["content-type"];
+
+  let imageMime = "image/jpeg";
+  if (contentType) {
+    const mimeResult = /image\/\w+/.exec(contentType);
+    if (mimeResult?.length) {
+      imageMime = mimeResult[0];
+    }
+  } else {
+    logger.warn(`${CAPTCHA_PATH}接口返回的验证码图片无MIME`);
+  }
+  return `data:${imageMime};base64,` + res.rawBody.toString("base64");
 };
 
 /**用户登录所需要的数据 */
@@ -93,14 +103,18 @@ export const fetchEnteredCasCookie = async (user: IUserInfo) => {
     body: params.toString(),
     throwHttpErrors: false,
   });
-  if (/soa/.test(res.headers["location"] || "")) {
-    return (res.headers["set-cookie"] as string[]).join(";");
+  if (
+    res.headers["location"] &&
+    res.headers["set-cookie"] &&
+    /soa/.test(res.headers["location"])
+  ) {
+    return res.headers["set-cookie"].join(";");
   }
   const reason = /<b>\S+<\/b>/.exec(res.body);
   if (reason && reason[0].length > 8) {
     throw new Error(reason[0].substring(3, reason[0].length - 4));
   } else {
-    throw new Error("登陆CAS页面时发生未知错误，可能是验证码已被使用过");
+    throw new Error("登陆CAS页面时发生未知错误");
   }
 };
 
@@ -141,6 +155,42 @@ export const fetchTicket = async ({ targets, cookie }: ITicketReqBody) => {
     }
   }
   return tickets;
+};
+
+/**根据cookie和目标系统url，获取到目标系统的ticket */
+export const fetchTicketByCasCookie = async (
+  cookie: string,
+  target: string
+) => {
+  const { hostname, protocol } = new URL(target);
+  const res = await got.get(CAS_URL + LOGIN_PATH + "?service=" + target, {
+    headers: {
+      cookie,
+      Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
+      "Accept-Encoding": "gzip, deflate",
+      "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+      Host: new URL(CAS_URL).hostname,
+      "Upgrade-Insecure-Requests": "1",
+      Referer: protocol + "//" + hostname,
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
+    },
+    followRedirect: false,
+    throwHttpErrors: false,
+    timeout: {
+      request: 2000
+    }
+  });
+  const location = res.headers["location"];
+  if (!location) {
+    throw new TypeError(
+      `未被CAS系统重定向，CAS系统返回状态码为${res.statusCode}`
+    );
+  }
+  if (location.includes(hostname)) {
+    return location;
+  } else {
+    throw new Error("被重定向到" + location + "，不符合target");
+  }
 };
 
 /**根据ticket获取cookie */
