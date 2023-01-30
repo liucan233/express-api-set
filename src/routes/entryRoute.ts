@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import timetableRouter from "./timetable";
-import loginSwustRouter from "./loginSwust";
-import matrixDeanRouter from "./matrixDean";
+import timetableRouter from "./timetableRoute";
+import loginSwustRouter from "./loginRoute";
+import matrixDeanRouter from "./matrixRoute";
 import casRouter from "./casRoute";
 
 // Init

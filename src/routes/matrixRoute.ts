@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { IReq, IReqQuery, IRes } from "@shared/types";
+import { IReqQuery, IRes } from "@shared/types";
 import {
   fetchJwExamList,
   getCookieFromTicket,
@@ -7,7 +7,7 @@ import {
 } from "@services/deanService";
 import { ParamInvalidError } from "@shared/errors";
 import { responseReq } from "@shared/functions";
-import { fetchTicket } from "@services/swustCasService";
+import { fetchTicketByCasCookie } from "@services/casService";
 
 const router = Router();
 
@@ -15,7 +15,6 @@ const router = Router();
 const DEAN_TARGET =
   "/acadmicManager/index.cfm?event=studentPortal:DEFAULT_EVENT";
 
-/**查询考试信息返回结构 */
 /**从教务处抓取考试信息，包括期末考试、期中考试和补考 */
 router.get(
   "/exam",
@@ -26,10 +25,10 @@ router.get(
     let cookie = req.query.cookie;
     if (!cookie) {
       // 根据cas页面的cookie获取教务系统ticket
-      [cookie] = await fetchTicket({
-        cookie: req.query.cas as string,
-        targets: [DEAN_URL + DEAN_TARGET],
-      });
+      cookie = await fetchTicketByCasCookie(
+        req.query.cas as string,
+        DEAN_URL + DEAN_TARGET,
+      );
       // 根据教务系统ticket拿cookie
       cookie = await getCookieFromTicket(cookie);
     }

@@ -4,7 +4,7 @@ import {
   fetchEnteredCasCookie,
   fetchTicketByCasCookie,
   IUserInfo,
-} from "@services/swustCasService";
+} from "@services/casService";
 import { IReq, IRes } from "@shared/types";
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";

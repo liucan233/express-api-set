@@ -7,7 +7,7 @@ import {
   fetchTicket,
   ITicketReqBody,
   IUserInfo,
-} from "@services/swustCasService";
+} from "@services/casService";
 import { StatusCodes } from "http-status-codes";
 import logger from "jet-logger";
 

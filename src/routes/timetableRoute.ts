@@ -1,13 +1,13 @@
 import { Router } from "express";
 import StatusCodes from "http-status-codes";
-import { IReq, IRes, IReqQuery } from "@shared/types";
+import { IRes, IReqQuery } from "@shared/types";
 import {
   bindAexpsIdWithCookie,
   fetchCommonTimetable,
   fetchLabTimeTable,
   fetchTermAndWeeks,
 } from "@services/timetableService";
-import { getCookieByTicketAndRedirection } from "@services/swustCasService";
+import { getCookieByTicketAndRedirection } from "@services/casService";
 import cookieUtil from "cookie";
 
 const router = Router();
@@ -134,7 +134,7 @@ router.get("/commonTimetable", async (req: IReqQuery<ICookie>, res: IRes) => {
   };
 
   const parsedCookie = cookieUtil.parse(req.query.cookie);
-   let cookie = parsedCookie["JSESSIONID"];
+  let cookie = parsedCookie["JSESSIONID"];
   cookie = cookieUtil.serialize("JSESSIONID", cookie);
 
   /**是否进行过cookie绑定 */
