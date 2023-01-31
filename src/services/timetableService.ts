@@ -35,6 +35,10 @@ export const fetchContext = async (
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
     },
     followRedirect: false,
+    timeout: {
+      request: 1000,
+      response: 1000
+    },
   });
 
   if (res.statusCode < 200 || res.statusCode > 299 || !res.body) {
@@ -80,6 +84,10 @@ export const bindAexpsIdWithCookie = async (cookie: string) => {
       Host: "202.115.175.175",
       "Upgrade-Insecure-Requests": "1",
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
+    },
+    timeout: {
+      request: 1000,
+      response: 1000
     },
     followRedirect: false,
   });
@@ -212,6 +220,10 @@ export const fetchCommonTimetable = async (cookie: string) => {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "op=getJwTimeTable",
+    timeout: {
+      request: 1000,
+      response: 1000
+    }
   });
 
   const resJson = JSON.parse(res.body) as IJWCourse[];

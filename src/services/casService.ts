@@ -207,6 +207,10 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
       Referer: CAS_URL,
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel) Chrome/104",
     },
+    timeout: {
+      request: 1000,
+      response: 1000
+    },
   });
   const { location } = res.headers;
   // if (res.statusCode < 300 || res.statusCode > 307) {

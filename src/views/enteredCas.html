@@ -112,6 +112,9 @@
           <li>
             <a class="open-target" onclick="handleShowExam()"> 查看考试安排 </a>
           </li>
+          <li>
+            <a class="open-target" onclick="handleShowScore()"> 查看课程成绩 </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -357,6 +360,32 @@
       function handleShowExam() {
         handleSwitchLoading();
         fetch("/api/dean/exam?cas=" + encodeURIComponent(casCookie), {
+          headers: {
+            "content-type": "x-www-form-urlencoded",
+          },
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            if (res.code === 200) {
+              return res;
+            } else {
+              throw new Error("返回状态码为" + res.code);
+            }
+          })
+          .then((res) => {
+            alert(JSON.stringify(res));
+          })
+          .catch((err) => {
+            handleError(err.message);
+          })
+          .finally(handleSwitchLoading);
+      }
+
+      function handleShowScore() {
+        handleSwitchLoading();
+        fetch("/api/dean/score?cas=" + encodeURIComponent(casCookie), {
           headers: {
             "content-type": "x-www-form-urlencoded",
           },
