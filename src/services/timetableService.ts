@@ -37,8 +37,10 @@ export const fetchContext = async (
     followRedirect: false,
     timeout: {
       request: 1000,
-      response: 1000
     },
+    retry: {
+      limit: 0
+    }
   });
 
   if (res.statusCode < 200 || res.statusCode > 299 || !res.body) {
@@ -87,7 +89,9 @@ export const bindAexpsIdWithCookie = async (cookie: string) => {
     },
     timeout: {
       request: 1000,
-      response: 1000
+    },
+    retry: {
+      limit: 0
     },
     followRedirect: false,
   });
@@ -222,7 +226,9 @@ export const fetchCommonTimetable = async (cookie: string) => {
     body: "op=getJwTimeTable",
     timeout: {
       request: 1000,
-      response: 1000
+    },
+    retry: {
+      limit: 0
     }
   });
 

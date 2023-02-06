@@ -20,7 +20,9 @@ export const fetchJwExamList = async (cookie: string): Promise<IExamInfo[]> => {
     throwHttpErrors: false,
     timeout: {
       request: 1000,
-      response: 1000
+    },
+    retry: {
+      limit: 0
     }
   });
   throwResponseCodeError(res.statusCode);
@@ -53,7 +55,9 @@ export const getCookieFromTicket = async (ticket: string) => {
     headers: fakeChromeHeaders("", ""),
     timeout: {
       request: 1000,
-      response: 1000
+    },
+    retry: {
+      limit: 0
     }
   });
   throwResponseCodeError(res.statusCode);
@@ -75,8 +79,10 @@ export const fetchJwScoreList = async (cookie: string) => {
     throwHttpErrors: false,
     timeout: {
       request: 1000,
-      response: 1000
     },
+    retry: {
+      limit: 0
+    }
   });
   return parseCourseScore(res.body.replace(/\s+/g,' '));
 };

@@ -177,7 +177,10 @@ export const fetchTicketByCasCookie = async (
     followRedirect: false,
     throwHttpErrors: false,
     timeout: {
-      request: 2000
+      request: 1000,
+    },
+    retry: {
+      limit: 0
     }
   });
   const location = res.headers["location"];
@@ -209,8 +212,10 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
     },
     timeout: {
       request: 1000,
-      response: 1000
     },
+    retry: {
+      limit: 0
+    }
   });
   const { location } = res.headers;
   // if (res.statusCode < 300 || res.statusCode > 307) {
