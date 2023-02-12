@@ -16,6 +16,7 @@ function handleStartup() {
     .then((res) => {
       captchaImg.src = res.data.captcha;
       cookie.value = res.data.cookie;
+      captcha.value=res.data.captchaText;
     });
 }
 

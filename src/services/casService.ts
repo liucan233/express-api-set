@@ -13,7 +13,8 @@ const CAS_URL = "http://cas.swust.edu.cn",
   /**官方登陆验证码接口路径，用于获取验证码图片 */
   CAPTCHA_PATH = "/authserver/captcha",
   /**官方RAS指数和模数接口路径，用于生成RAS公钥 */
-  KEY_PATH = "/authserver/getKey";
+  KEY_PATH = "/authserver/getKey",
+  OCR_SERVER = "http://47.115.202.32:5000/API/v1/ocr";
 
 /**获取CAS登陆页面的cookie */
 export const fetchCasLoginCookie = () => {
@@ -180,8 +181,8 @@ export const fetchTicketByCasCookie = async (
       request: 1000,
     },
     retry: {
-      limit: 0
-    }
+      limit: 0,
+    },
   });
   const location = res.headers["location"];
   if (!location) {
@@ -214,8 +215,8 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
       request: 1000,
     },
     retry: {
-      limit: 0
-    }
+      limit: 0,
+    },
   });
   const { location } = res.headers;
   // if (res.statusCode < 300 || res.statusCode > 307) {
@@ -229,4 +230,26 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
   } else {
     throw new Error("使用ticket获取cookie时发生未知错误");
   }
+};
+
+/**base64图片验证码自动识别 */
+export const getTextFromBase64Image = async (base64Img: string): Promise<string> => {
+  const res = await got.post(OCR_SERVER, {
+    json: {
+      captcha: base64Img,
+    },
+    timeout: {
+      request: 1000,
+    },
+    retry: {
+      limit: 0,
+    },
+  });
+  const text = res.headers["captcha-text"];
+  if (typeof text === "string") {
+    return text;
+  } else if (text) {
+    return text[0];
+  }
+  return "";
 };

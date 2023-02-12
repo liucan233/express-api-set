@@ -3,11 +3,13 @@ import {
   fetchCasLoginCookie,
   fetchEnteredCasCookie,
   fetchTicketByCasCookie,
+  getTextFromBase64Image,
   IUserInfo,
 } from "@services/casService";
 import { IReq, IRes } from "@shared/types";
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
+import logger from "jet-logger";
 
 const router = Router();
 const { OK, BAD_REQUEST } = StatusCodes;
@@ -19,10 +21,16 @@ router.get("/login", async (_, res: IRes) => {
     data: {
       cookie: "",
       captcha: "",
+      captchaText: ""
     },
   };
   responseText.data.cookie = await fetchCasLoginCookie();
   responseText.data.captcha = await fetchCaptchaImage(responseText.data.cookie);
+  try {
+    responseText.data.captchaText=await getTextFromBase64Image(responseText.data.captcha);
+  } catch (error) {
+    logger.err(error, true);
+  }
   res.json(responseText);
 });
 
