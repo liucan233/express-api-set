@@ -1,11 +1,11 @@
-import { ParamInvalidError } from "@shared/errors";
-import { throwResponseCodeError, responseReq } from "@shared/functions";
+import { BadRequestError, UnauthorizedError } from "@shared/errors";
+import { checkSwustResponseCode } from "@shared/functions";
 import { fakeChromeHeaders } from "@util/userAgent";
 import got from "got-cjs";
 import { load } from "cheerio";
 import cookieUtil from "cookie";
 import { IExamInfo, parseExamFromTable } from "@util/matrixDean";
-import { parseCourseScore } from "@util/casUtil";
+import { parseCourseScore } from "@util/matrixDean";
 
 export const EXAM_PATH =
     "/acadmicManager/index.cfm?event=studentPortal:examTable",
@@ -23,10 +23,11 @@ export const fetchJwExamList = async (cookie: string): Promise<IExamInfo[]> => {
     },
     retry: {
       limit: 0
-    }
+    },
+    
   });
-  throwResponseCodeError(res.statusCode);
-  const $body = load(res.body.replace(/\s+/g, "")),
+  checkSwustResponseCode(res.statusCode, DEAN_URL + EXAM_PATH);
+  const $body = load(res.body.replace(/\s+/g, " ")),
     $finalTable = $body("tbody", "#finalExamTable"),
     $middleTable = $body("tbody", "#midExamTable"),
     $resitTable = $body("tbody", "#resitExamTable");
@@ -47,7 +48,7 @@ export const fetchJwExamList = async (cookie: string): Promise<IExamInfo[]> => {
 /**将教务处ticket转换为cookie */
 export const getCookieFromTicket = async (ticket: string) => {
   if (ticket.indexOf(DEAN_URL) !== 0) {
-    throw new ParamInvalidError("ticket必须以" + DEAN_URL + "开头");
+    throw new BadRequestError("ticket必须以" + DEAN_URL + "开头");
   }
   const res = await got.get(ticket, {
     throwHttpErrors: false,
@@ -60,15 +61,15 @@ export const getCookieFromTicket = async (ticket: string) => {
       limit: 0
     }
   });
-  throwResponseCodeError(res.statusCode);
+  checkSwustResponseCode(res.statusCode, ticket);
   if (!res.headers["set-cookie"]) {
-    throw Error("使用ticket访问教务处set-cookie为空");
+    throw new UnauthorizedError("使用ticket访问教务处set-cookie为空");
   }
   const cookie = cookieUtil.parse(res.headers["set-cookie"][0])["SSO"];
   if (cookie) {
     return "SSO=" + cookie;
   }
-  throw Error("根据ticket获取cookie失败");
+  throw new UnauthorizedError("使用ticket访问教务处获取到的cookie不包含SSO=xxx");
 };
 
 /**根据教务处cookie获取课程成绩 */
@@ -84,5 +85,6 @@ export const fetchJwScoreList = async (cookie: string) => {
       limit: 0
     }
   });
+  checkSwustResponseCode(res.statusCode, DEAN_URL + SCORE_PATH);
   return parseCourseScore(res.body.replace(/\s+/g,' '));
 };

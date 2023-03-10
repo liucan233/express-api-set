@@ -1,7 +1,8 @@
 import HttpStatusCode from "http-status-codes";
 
-export abstract class RequestError extends Error {
-  public readonly code = HttpStatusCode.BAD_REQUEST;
+/**服务器遇到错误，向客户端抛错误 */
+export class HttpServerError extends Error {
+  public readonly code = HttpStatusCode.INTERNAL_SERVER_ERROR;
 
   constructor(msg: string, code: number) {
     super(msg);
@@ -9,30 +10,32 @@ export abstract class RequestError extends Error {
   }
 }
 
-export class ParamInvalidError extends RequestError {
-  public static readonly Msg =
-    "One or more of the required was missing or invalid.";
-  public static readonly code = HttpStatusCode.BAD_REQUEST;
-
-  constructor(msg?: string) {
-    super(msg||ParamInvalidError.Msg, ParamInvalidError.code);
+export class BadRequestError extends HttpServerError {
+  constructor(msg: string) {
+    super(msg, HttpStatusCode.BAD_REQUEST);
   }
 }
 
-export class UnauthorizedError extends RequestError {
-  public static readonly Msg = "Login failed";
-  public static readonly code = HttpStatusCode.UNAUTHORIZED;
-
-  constructor(msg?: string) {
-    super(msg||UnauthorizedError.Msg, UnauthorizedError.code);
+export class UnauthorizedError extends HttpServerError {
+  constructor(msg: string) {
+    super(msg, HttpStatusCode.UNAUTHORIZED);
   }
 }
 
-export class ServerError extends RequestError {
-  public static readonly Msg = "internal server error";
-  public static readonly code = HttpStatusCode.INTERNAL_SERVER_ERROR;
+export class InternalError extends HttpServerError {
+  constructor(msg: string) {
+    super(msg, HttpStatusCode.UNAUTHORIZED);
+  }
+}
 
-  constructor(msg?: string) {
-    super(msg||ServerError.Msg, ServerError.code);
+export class GatewayError extends HttpServerError {
+  constructor(msg: string) {
+    super(msg, HttpStatusCode.BAD_GATEWAY);
+  }
+}
+
+export class UnavailableError extends HttpServerError {
+  constructor(msg: string) {
+    super(msg, HttpStatusCode.SERVICE_UNAVAILABLE);
   }
 }

@@ -6,13 +6,14 @@ import {
   getTextFromBase64Image,
   IUserInfo,
 } from "@services/casService";
+import { BadRequestError } from "@shared/errors";
 import { IReq, IRes } from "@shared/types";
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import logger from "jet-logger";
 
 const router = Router();
-const { OK, BAD_REQUEST } = StatusCodes;
+const { OK } = StatusCodes;
 
 router.get("/login", async (_, res: IRes) => {
   const responseText = {
@@ -44,10 +45,7 @@ router.post("/login", async (req: IReq<IUserInfo>, res: IRes) => {
   };
   const { user, passwd, captcha, cookie } = req.body;
   if (!user || !passwd || !captcha || !cookie) {
-    responseText.code = BAD_REQUEST;
-    responseText.msg = "请求参数错误";
-    res.json(responseText);
-    return;
+    throw new BadRequestError('账号、密码、验证码或cas系统cookie为空');
   }
   responseText.data.cookie = await fetchEnteredCasCookie(req.body);
   res.json(responseText);
@@ -78,10 +76,10 @@ router.post("/ticket", async (req: IReq<TGetTicketReq>, res: IRes) => {
   };
   const { cookie, target } = req.body;
   if (!cookie || !target || !targetToUrl[target]) {
-    throw new TypeError("请求参数不正确");
+    throw new BadRequestError('cas系统cookie为空或者target不正确');
   }
   if (!cookie.includes("TGC=")) {
-    throw new TypeError("请确保cookie为登陆Cas页面后的cookie");
+    throw new BadRequestError('cas系统cookie不正确，请确保包含TGC=xxx');
   }
   responseText.data.ticket = await fetchTicketByCasCookie(
     cookie,

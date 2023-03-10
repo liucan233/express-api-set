@@ -6,7 +6,8 @@ import {
   covertLabCourse,
   IJWCourse,
   ILabCourse,
-} from "@util/timetable";
+} from "@util/labUtil";
+import { UnauthorizedError } from "@shared/errors";
 
 const LAB_URL = "http://202.115.175.175",
   LAB_HOME = "/aexp/stuTop.jsp",
@@ -54,7 +55,7 @@ export const fetchTermAndWeeks = async (cookie: string) => {
   const body = await fetchContext(LAB_HOME, cookie, "");
   const matchClassReg = /class="top/g;
   if (!matchClassReg.test(body)) {
-    throw new Error("未找到包含学期的div标签");
+    throw new UnauthorizedError("未找到包含学期的div标签");
   }
   const timeReg = /(\d+-\d+)(?=学年第)/g;
   timeReg.lastIndex = matchClassReg.lastIndex;

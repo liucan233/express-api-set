@@ -1,3 +1,10 @@
+import {
+  HttpServerError,
+  InternalError,
+  UnauthorizedError,
+  UnavailableError
+} from "@shared/errors";
+import { checkSwustResponseCode } from "@shared/functions";
 import { rsaUtils } from "@util/security";
 import got from "got-cjs";
 // import { StatusCodes } from "http-status-codes";
@@ -17,13 +24,15 @@ const CAS_URL = "http://cas.swust.edu.cn",
   OCR_SERVER = "http://47.115.202.32:5000/API/v1/ocr";
 
 /**获取CAS登陆页面的cookie */
-export const fetchCasLoginCookie = () => {
-  return got.get(CAS_URL + LOGIN_PATH).then((res) => {
-    if (res.headers["set-cookie"]) {
-      return res.headers["set-cookie"].join(";");
-    }
-    throw new TypeError("cookie获取失败，返回的cookie为空");
+export const fetchCasLoginCookie = async () => {
+  const res = await got(CAS_URL + LOGIN_PATH,{
+    throwHttpErrors: false
   });
+  checkSwustResponseCode(res.statusCode, CAS_URL + LOGIN_PATH);
+  if (res.headers["set-cookie"]) {
+    return res.headers["set-cookie"].join(";");
+  }
+  throw new UnavailableError(`${CAS_URL}返回的cookie为空`);
 };
 
 /**官方RAS指数和模数接口返回结构 */
@@ -39,9 +48,13 @@ export const getEncodedPasswd = async (passwd: string, cookie: string) => {
     })
     .then((res) => {
       return JSON.parse(res.body) as IRSAParams;
+    })
+    .catch(()=>{
+      return {exponent: '', modulus: ''};
     });
   if (!exponent || !modulus) {
-    throw new TypeError(`指数为${exponent}，模数为${modulus}`);
+    logger.err(`从${CAS_URL}获取RSA指数和模数失败`);
+    throw new UnavailableError(`从${CAS_URL}获取RSA指数和模数失败`);
   }
   const publicKey = rsaUtils.getKeyPair(exponent, "", modulus);
   return rsaUtils.encryptedString(
@@ -52,9 +65,11 @@ export const getEncodedPasswd = async (passwd: string, cookie: string) => {
 
 /**根据cookie获取验证码图片 */
 export const fetchCaptchaImage = async (cookie: string) => {
-  const res = await got.get(CAS_URL + CAPTCHA_PATH, {
+  const res = await got(CAS_URL + CAPTCHA_PATH, {
     headers: { cookie },
+    throwHttpErrors: false
   });
+  checkSwustResponseCode(res.statusCode, CAS_URL + CAPTCHA_PATH);
   const contentType = res.headers["content-type"];
 
   let imageMime = "image/jpeg";
@@ -113,9 +128,10 @@ export const fetchEnteredCasCookie = async (user: IUserInfo) => {
   }
   const reason = /<b>\S+<\/b>/.exec(res.body);
   if (reason && reason[0].length > 8) {
-    throw new Error(reason[0].substring(3, reason[0].length - 4));
+    throw new UnauthorizedError(reason[0].substring(3, reason[0].length - 4));
   } else {
-    throw new Error("登陆CAS页面时发生未知错误");
+    logger.err(res.body, true);
+    throw new UnauthorizedError("登陆CAS系统时发生未知错误");
   }
 };
 
@@ -186,14 +202,15 @@ export const fetchTicketByCasCookie = async (
   });
   const location = res.headers["location"];
   if (!location) {
-    throw new TypeError(
-      `未被CAS系统重定向，CAS系统返回状态码为${res.statusCode}`
+    throw new HttpServerError(
+      `确保cas系统cookie正确，CAS系统返回状态码为${res.statusCode}`,
+      res.statusCode
     );
   }
   if (location.includes(hostname)) {
     return location;
   } else {
-    throw new Error("被重定向到" + location + "，不符合target");
+    throw new InternalError("被重定向到" + location + "，预期是"+hostname);
   }
 };
 
@@ -202,6 +219,7 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
   const { host } = new URL(ticket);
   const res = await got.get(ticket, {
     followRedirect: false,
+    throwHttpErrors: false,
     headers: {
       Accept: "text/html,application/xhtml+xml;v=b3;q=0.9",
       "Accept-Encoding": "gzip, deflate",
@@ -219,16 +237,13 @@ export const getCookieByTicketAndRedirection = async (ticket: string) => {
     },
   });
   const { location } = res.headers;
-  // if (res.statusCode < 300 || res.statusCode > 307) {
-  //   throw new RangeError("目标系统返回到状态码为" + res.statusCode+'，未被重定向');
-  // }
   if (!location || !location.match(host) || location.match("login")) {
-    throw new Error(`被重定向到${location as string}，与预期不符`);
+    throw new UnauthorizedError(location?`被重定向到${location}，与预期${host}不符`:`未被重定向到${host}`);
   }
   if (res.headers["set-cookie"]) {
     return res.headers["set-cookie"].join(";");
   } else {
-    throw new Error("使用ticket获取cookie时发生未知错误");
+    throw new InternalError("使用ticket获取cookie时发生未知错误");
   }
 };
 

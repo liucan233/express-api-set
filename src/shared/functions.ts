@@ -1,7 +1,7 @@
 import logger from "jet-logger";
 import { Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ServerError } from "./errors";
+import { HttpServerError, UnavailableError } from "./errors";
 
 /**向客户端返回数据 */
 export const responseReq = (res: Response, data: unknown) => {
@@ -13,9 +13,13 @@ export const responseReq = (res: Response, data: unknown) => {
 };
 
 /**根据状态码判断是否是正常响应 */
-export const throwResponseCodeError = (code: number) => {
-  if (code < 200 || (code > 299 && code !== 304)) {
-    throw new ServerError(`学校服务返回状态码为${code}`);
+export const checkSwustResponseCode = (code: number, url: string) => {
+  if(code >= 500){
+    throw new UnavailableError(`学校${url}服务不可用`);
+  } else if(code === 401){
+    throw new UnavailableError(`访问学校${url}返回认证失败`);
+  } else if (code < 200 || code > 299) {
+    throw new HttpServerError(`学校${url}服务返回状态码为${code}`, code);
   }
 };
 

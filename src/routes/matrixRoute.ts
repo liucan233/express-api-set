@@ -5,8 +5,8 @@ import {
   getCookieFromTicket,
   DEAN_URL,
   fetchJwScoreList,
-} from "@services/deanService";
-import { ParamInvalidError } from "@shared/errors";
+} from "@services/matrixService";
+import { BadRequestError } from "@shared/errors";
 import { responseReq } from "@shared/functions";
 import { fetchTicketByCasCookie } from "@services/casService";
 
@@ -21,7 +21,7 @@ router.get(
   "/exam",
   async (req: IReqQuery<{ cookie?: string; cas?: string }>, res: IRes) => {
     if (!req.query.cookie && !req.query.cas) {
-      throw new ParamInvalidError("未携带教务系统cookie或ticket");
+      throw new BadRequestError("未携带教务系统cookie或访问教务处的ticket");
     }
     let cookie = req.query.cookie;
     if (!cookie) {
@@ -46,7 +46,7 @@ router.get(
   "/score",
   async (req: IReqQuery<{ cookie?: string; cas?: string }>, res: IRes) => {
     if (!req.query.cookie && !req.query.cas) {
-      throw new ParamInvalidError("未携带教务系统cookie或ticket");
+      throw new BadRequestError("未携带教务系统cookie或ticket");
     }
     let cookie = req.query.cookie;
     if (!cookie) {

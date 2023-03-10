@@ -6,7 +6,7 @@ import {
   fetchCommonTimetable,
   fetchLabTimeTable,
   fetchTermAndWeeks,
-} from "@services/timetableService";
+} from "@services/labService";
 import { getCookieByTicketAndRedirection } from "@services/casService";
 import cookieUtil from "cookie";
 
@@ -33,20 +33,10 @@ router.get("/cookie", async (req: IReqQuery<ITicket>, res: IRes) => {
     res.json(responseText);
     return;
   }
-  try {
-    responseText.data.cookie = await getCookieByTicketAndRedirection(
-      req.query.ticket
-    );
-    res.json(responseText);
-  } catch (error:unknown) {
-    responseText.code = INTERNAL_SERVER_ERROR;
-    if(error instanceof Error){
-      responseText.msg=error.message;
-    } else {
-      responseText.msg = "获取cookie发生未知错误";
-    }
-    res.json(responseText);
-  }
+  responseText.data.cookie = await getCookieByTicketAndRedirection(
+    req.query.ticket
+  );
+  res.json(responseText);
 });
 
 interface ICookie {
@@ -69,18 +59,8 @@ router.get("/time", async (req: IReqQuery<ICookie>, res: IRes) => {
     res.json(responseText);
     return;
   }
-  try {
-    responseText.data = await fetchTermAndWeeks(req.query.cookie);
-    res.json(responseText);
-  } catch (error) {
-    responseText.code = INTERNAL_SERVER_ERROR;
-    if(error instanceof Error){
-      responseText.msg=error.message;
-    } else {
-      responseText.msg = "获取学期和周数时发生未知错误";
-    }
-    res.json(responseText);
-  }
+  responseText.data = await fetchTermAndWeeks(req.query.cookie);
+  res.json(responseText);
 });
 
 router.get("/labTimeTable", async (req: IReqQuery<ICookie>, res: IRes) => {
