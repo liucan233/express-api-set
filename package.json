@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "npx ts-node build.ts",
-    "lint": "npx eslint --ext .ts src/",
+    "build": "babel ./src -d ./dist -x \".ts,.js\"",
+    "lint": "eslint --ext .ts src/",
     "start": "nodemon"
   },
   "engines": {
@@ -28,6 +28,10 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "tsconfig-paths": "^4.2.0"
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.3",
+    "@babel/preset-typescript": "^7.23.3",
+    "tslib": "^2.6.2",
+    "babel-plugin-add-import-extension": "^1.6.0"
   }
 }
