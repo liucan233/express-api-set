@@ -6,7 +6,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/api/app/"
+      "dest": "/api/app/api/"
     }
   ],
   "functions": {
