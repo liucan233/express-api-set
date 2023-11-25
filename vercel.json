@@ -1,14 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/app/"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/app/api/"
-    }
-  ],
+  "routes": [{ "src": "/(.*)", "dest": "/api/app/" }],
   "functions": {
     "api/*.js": {
       "memory": 1024,
