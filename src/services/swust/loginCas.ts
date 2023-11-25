@@ -2,7 +2,7 @@ import { Router } from "express";
 import { logError, logger } from "../../logger";
 import { CasLogin } from "../../classes/CasLogin";
 
-export const loginCasRouter = Router()
+export const loginCasRouter:Router = Router()
 
 loginCasRouter.get('/loginCas', async (req, res, next) => {
     const crawler = new CasLogin();

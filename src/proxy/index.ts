@@ -1,3 +1,3 @@
 import { Router } from "express";
 
-export const proxyRouter=Router()
+export const proxyRouter:Router=Router()

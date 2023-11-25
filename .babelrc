@@ -1,0 +1,10 @@
+{
+  "presets": [["@babel/preset-typescript"]],
+  "ignore": ["**/*.d.ts"],
+  "plugins": ["babel-plugin-add-import-extension"],
+  "sourceType": "module",
+  "targets": {
+    "esmodules": true,
+    "node": "16"
+  }
+}

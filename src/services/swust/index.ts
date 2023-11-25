@@ -2,7 +2,7 @@ import { Router } from "express";
 import { logger } from "../../logger";
 import { loginCasRouter } from "./loginCas";
 
-export const swustRouter = Router()
+export const swustRouter:Router = Router()
 
 swustRouter.use(loginCasRouter);
 
