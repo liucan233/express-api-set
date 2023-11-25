@@ -5,7 +5,7 @@
   "scripts": {
     "build:vercel": "rollup -c ./rollup.config.js",
     "build:babel": "babel ./src -d ./api -x \".ts,.js\"",
-    "lint": "eslint --ext .ts src/",
+    "lint": "tsc --noEmit && eslint ./src --ext .ts",
     "start": "nodemon"
   },
   "engines": {
@@ -36,7 +36,13 @@
     "@babel/preset-typescript": "^7.23.3",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
     "babel-plugin-add-import-extension": "^1.6.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "3.1.0",
     "tslib": "^2.6.2"
   }
 }

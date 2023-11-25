@@ -1,11 +1,7 @@
 {
-    "cSpell.words": [
-        "acadmic",
-        "aexp",
-        "aexpsid",
-        "JSESSIONID",
-        "stutool",
-        "tablelist",
-        "teachn"
-    ]
+  "cSpell.words": ["acadmic", "aexp", "aexpsid", "JSESSIONID", "stutool", "tablelist", "teachn"],
+  "editor.rulers": [80],
+  "eslint.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // 默认的代码格式化工具
+  "prettier.requireConfig": true // 需要Prettier的配置文件
 }

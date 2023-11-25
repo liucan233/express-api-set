@@ -1,8 +1,8 @@
-export enum CrawlerError{
-    NoError,
-    OpenCasSystemErr,
-    GetCasSysCaptchaErr,
-    CasSysUnstable,
-    AccPsdCpaMismatch,
-    UnexpectedErr
+export enum CrawlerError {
+  NoError,
+  OpenCasSystemErr,
+  GetCasSysCaptchaErr,
+  CasSysUnstable,
+  AccPsdCpaMismatch,
+  UnexpectedErr,
 }

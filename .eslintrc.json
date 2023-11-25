@@ -1,0 +1,22 @@
+{
+  "env": {
+    "node": true
+  },
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
+  "plugins": ["prettier", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "prettier/prettier": "error",
+    "arrow-body-style": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "prefer-const": "warn"
+  },
+  // 你的全局变量（设置为 false 表示它不允许被重新赋值）
+  "globals": {},
+  "ignorePatterns": ["/api", "/dist"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "root": true // 项目根目录，eslint解析配置文件不再向父文件夹递归
+}
