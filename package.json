@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "babel ./src -d ./dist -x \".ts,.js\"",
+    "build:vercel": "rollup -c ./rollup.config.js",
+    "build:babel": "babel ./src -d ./api -x \".ts,.js\"",
     "lint": "eslint --ext .ts src/",
     "start": "nodemon"
   },
@@ -23,6 +24,8 @@
     "jsdom": "^22.1.0",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.0.1",
+    "rollup": "^4.5.2",
+    "rollup-plugin-node-externals": "^6.1.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2",
     "winston": "^3.11.0"
@@ -31,7 +34,9 @@
     "@babel/cli": "^7.23.4",
     "@babel/core": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
-    "tslib": "^2.6.2",
-    "babel-plugin-add-import-extension": "^1.6.0"
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "babel-plugin-add-import-extension": "^1.6.0",
+    "tslib": "^2.6.2"
   }
 }

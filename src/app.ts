@@ -31,6 +31,8 @@ app.listen(appPort, 'localhost', () => {
     logger.info('应用启动成功localhost:' + appPort)
 });
 
-process.on('uncaughtException', (reason)=>{
+export default app;
+
+process.on('uncaughtException', (reason) => {
     logError(reason);
 })

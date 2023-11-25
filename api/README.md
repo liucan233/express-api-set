@@ -1,0 +1,1 @@
+vercel部署时会优先部署api服务，再执行build命令，故在部署前需要手动编译express服务，执行`pnpm run build:vercel`即可。
