@@ -5,4 +5,6 @@ export enum CrawlerError {
   CasSysUnstable,
   AccPsdCpaMismatch,
   UnexpectedErr,
+  CasSysTGCExpired,
+  CasRedirectUnexpected,
 }

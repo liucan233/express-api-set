@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { logError, logger } from '../../logger';
 import { CasLogin } from '../../classes/CasLogin';
+import { swustServices } from '../../constant/swustServices';
 
 export const loginCasRouter: Router = Router();
 
@@ -52,9 +53,30 @@ loginCasRouter.post('/loginCas', async (req, res, next) => {
     res.json({
       code: crawler.errorCode,
       msg: crawler.errorMsg,
+    });
+  }
+});
+
+loginCasRouter.post('/loginService', async (req, res) => {
+  const crawler = new CasLogin();
+  try {
+    const service = swustServices[req.body.serviceIndex];
+    const tgc = req.body.tgcCookie;
+    logger.info(`开始登录${service}系统`);
+    const setCookie = await crawler.tryLoginServiceByTGC(tgc, service, req.body.casHttpProtocol);
+    logger.info('登录系统成功');
+    res.json({
+      code: crawler.errorCode,
+      msg: crawler.errorMsg,
       data: {
-        tgcCookie: crawler.tgcCookie,
+        serviceCookie: setCookie,
       },
+    });
+  } catch (error) {
+    logError(error);
+    res.json({
+      code: crawler.errorCode,
+      msg: crawler.errorMsg,
     });
   }
 });

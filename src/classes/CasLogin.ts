@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 const casUrl = '//cas.swust.edu.cn/authserver/login?service=http%3A%2F%2Fsoa.swust.edu.cn%2F';
 
 export class CasLogin {
-  errorCode = CrawlerError.NoError;
+  errorCode = CrawlerError.UnexpectedErr;
   errorMsg = '';
   url = casUrl;
   session = '';
@@ -65,6 +65,7 @@ export class CasLogin {
     });
     if (res.dataUrlResult && !res.cookie && res.status < 300 && res.status > 199) {
       this.captcha = res.dataUrlResult;
+      this.errorCode = CrawlerError.NoError;
       return;
     }
     this.errorCode = CrawlerError.OpenCasSystemErr;
@@ -107,6 +108,7 @@ export class CasLogin {
 
     if (res.cookie.includes('TGC')) {
       this.tgcCookie = res.cookie;
+      this.errorCode = CrawlerError.NoError;
       return;
     }
 
@@ -137,6 +139,37 @@ export class CasLogin {
     this.httpProtocol = httpProtocol;
     this.url = this.httpProtocol + this.url;
     await this.loadRSAPublicKey();
+  }
+
+  async tryLoginServiceByTGC(tgcCookie: string, service: string, httpProtocol: string) {
+    this.tgcCookie = tgcCookie;
+    this.httpProtocol = httpProtocol;
+    this.url = `${httpProtocol}//cas.swust.edu.cn/authserver/login?service=${encodeURIComponent(service)}`;
+    let res = await fetch(this.url, {
+      redirect: 'manual',
+      headers: {
+        cookie: tgcCookie,
+      },
+    });
+    const location = res.headers.get('location');
+    if (!location) {
+      this.errorCode = CrawlerError.CasSysTGCExpired;
+      this.errorMsg = 'cas系统登录过期，需要重新登陆';
+      throw new Error(this.errorMsg);
+    }
+    if (!location.includes(service)) {
+      this.errorCode = CrawlerError.CasRedirectUnexpected;
+      this.errorMsg = `cas系统重定向为${location}，预期是${service}`;
+      throw new Error(this.errorMsg);
+    }
+    res = await fetch(location);
+    if (res.cookie) {
+      this.errorCode = CrawlerError.NoError;
+      return res.cookie;
+    }
+    this.errorCode = CrawlerError.CasSysUnstable;
+    this.errorMsg = `响应状态码${res.status}，cas系统跳转目标系统未被设置cookie`;
+    throw new Error(this.errorMsg);
   }
 
   async parseErrorText(html: string) {
