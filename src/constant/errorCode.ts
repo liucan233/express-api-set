@@ -7,4 +7,9 @@ export enum CrawlerError {
   UnexpectedErr,
   CasSysTGCExpired,
   CasRedirectUnexpected,
+
+  OpenLabSysErr,
+  LabCoursePageParseErr,
+  LabCourseRowParseErr,
+  LabSysCookieExpired,
 }

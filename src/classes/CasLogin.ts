@@ -151,7 +151,7 @@ export class CasLogin {
         cookie: tgcCookie,
       },
     });
-    const location = res.headers.get('location');
+    let location = res.headers.get('location');
     if (!location) {
       this.errorCode = CrawlerError.CasSysTGCExpired;
       this.errorMsg = 'cas系统登录过期，需要重新登陆';
@@ -162,8 +162,22 @@ export class CasLogin {
       this.errorMsg = `cas系统重定向为${location}，预期是${service}`;
       throw new Error(this.errorMsg);
     }
-    res = await fetch(location);
-    if (res.cookie) {
+    res = await fetch(location, {
+      redirect: 'manual',
+    });
+
+    // 二次重定向
+    location = res.headers.get('location');
+    if (location?.includes(service)) {
+      logger.info(`${service}重定向到${location}`);
+      res = await fetch(location, {
+        headers: {
+          cookie: res.cookie,
+        },
+      });
+    }
+    location = res.headers.get('location');
+    if (res.cookie && !location) {
       this.errorCode = CrawlerError.NoError;
       return res.cookie;
     }
