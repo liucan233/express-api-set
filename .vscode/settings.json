@@ -2,9 +2,14 @@
   "cSpell.words": ["acadmic", "aexp", "aexpsid", "JSESSIONID", "stutool", "tablelist", "teachn"],
   "editor.rulers": [120],
   "eslint.enable": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode", // 默认的代码格式化工具
   "prettier.requireConfig": true,
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.formatOnPaste": false, // required
+  "editor.formatOnType": false, // required
+  "editor.formatOnSave": true, // optional
+  "editor.formatOnSaveMode": "file", // required to format on save
+  "files.autoSave": "onFocusChange",
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  } // 需要Prettier的配置文件
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  } // optional but recommended
 }
