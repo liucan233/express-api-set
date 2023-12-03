@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  name               String
+  // 回复的评论
+  commentArr         Comment[] @relation("CommentArr")
+  // 被回复的评论
+  receivedCommentArr Comment[] @relation("receivedCommentArr")
+}
+
+// 评论列表，一篇文章的评论放进一个列表
+model CommentList {
+  id         Int       @id @default(autoincrement())
+  desc       String?
+  commentArr Comment[]
+}
+
+model Comment {
+  id          Int         @id @default(autoincrement())
+  sourceId    Int
+  source      CommentList @relation(fields: [sourceId], references: [id])
+  content     String
+  userId      Int
+  user        User        @relation("CommentArr", fields: [userId], references: [id])
+  replyUserId Int?
+  reply       User?       @relation("receivedCommentArr", fields: [replyUserId], references: [id])
+}
