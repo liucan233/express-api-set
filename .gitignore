@@ -4,3 +4,5 @@ local.json
 logs
 dist
 .vercel
+env/app.env
+prisma/.env

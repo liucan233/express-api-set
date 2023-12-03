@@ -1,9 +1,8 @@
 import { appPort } from './config';
-import http from 'node:http';
-import path from 'node:path';
 import express from 'express';
 import { logError, logger } from './logger';
 import { servicesRouter } from './services';
+import { prismaClient } from './libraries/prisma';
 
 const app = express();
 
@@ -36,3 +35,7 @@ export default app;
 process.on('uncaughtException', reason => {
   logError(reason);
 });
+
+// process.on('SIGINT', () => {
+//   app.
+// });
