@@ -24,6 +24,7 @@ model User {
 model CommentList {
   id         Int       @id @default(autoincrement())
   desc       String?
+  externalId String    @unique
   commentArr Comment[]
 }
 
