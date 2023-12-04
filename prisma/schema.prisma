@@ -11,30 +11,49 @@ datasource db {
 }
 
 model User {
-  id                 Int       @id @default(autoincrement())
-  email              String    @unique
+  id                 Int             @id @default(autoincrement())
+  email              String          @unique
   name               String
-  // 回复的评论
-  commentArr         Comment[] @relation("CommentArr")
-  // 被回复的评论
-  receivedCommentArr Comment[] @relation("receivedCommentArr")
+  // 当前用户非@回复
+  commentArr         Comment[]
+  // 当前用户@回复
+  commentReplyArr    CommentReply[]  @relation("replyBy")
+  // 当前用户拥有的可被评论的资源
+  commentOwnArr      CommentSource[]
+  // 当前用户被@
+  commentReceivedArr CommentReply[]  @relation("replyTo")
 }
 
-// 评论列表，一篇文章的评论放进一个列表
-model CommentList {
+// 可以被评论的资源
+model CommentSource {
   id         Int       @id @default(autoincrement())
   desc       String?
   externalId String    @unique
   commentArr Comment[]
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id])
 }
 
 model Comment {
-  id          Int         @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
+  sourceId  Int
+  source    CommentSource  @relation(fields: [sourceId], references: [id])
+  createdAt DateTime       @default(now())
+  content   String
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id])
+  // 当前评论的子评论，可以是@当前评论，也可以是@其他评论
+  replyArr  CommentReply[]
+}
+
+model CommentReply {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
   sourceId    Int
-  source      CommentList @relation(fields: [sourceId], references: [id])
+  source      Comment  @relation(fields: [sourceId], references: [id])
   content     String
   userId      Int
-  user        User        @relation("CommentArr", fields: [userId], references: [id])
+  user        User     @relation("replyBy", fields: [userId], references: [id])
   replyUserId Int?
-  reply       User?       @relation("receivedCommentArr", fields: [replyUserId], references: [id])
+  reply       User?    @relation("replyTo", fields: [replyUserId], references: [id])
 }

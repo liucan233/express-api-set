@@ -6,16 +6,17 @@ export const commentRouter: Router = Router();
 
 commentRouter.post('/new', async (req, res) => {
   const { body } = req;
-  let findRes = await prismaClient.commentList.findFirst({
+  let findRes = await prismaClient.commentSource.findFirst({
     where: {
       externalId: body.id,
     },
   });
   if (!findRes) {
-    findRes = await prismaClient.commentList.create({
+    findRes = await prismaClient.commentSource.create({
       data: {
         desc: 'express_created',
         externalId: body.id,
+        userId: 1
       },
     });
   }
@@ -30,12 +31,18 @@ commentRouter.post('/new', async (req, res) => {
 });
 
 commentRouter.get('/list', async (req, res) => {
-  const findRes = await prismaClient.commentList.findFirst({
+  const findRes = await prismaClient.commentSource.findFirst({
     where: {
       externalId: req.query.id as string,
     },
     include: {
-      commentArr: true,
+      commentArr: {
+        include: {
+          replyArr: {
+            take: 5
+          }
+        }
+      },
     },
   });
   // if(!findRes){
