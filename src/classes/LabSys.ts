@@ -2,7 +2,7 @@ import { logger } from '../logger';
 import { fetch } from '../libraries/fetch';
 import { headersToString } from '../utils';
 import { JSDOM, CookieJar } from 'jsdom';
-import { CrawlerError } from '../constant/errorCode';
+import { ErrCode } from '../constant/errorCode';
 
 const labSysUrl = 'http://sjjx.swust.edu.cn';
 
@@ -10,7 +10,7 @@ export class LabSysCrawler {
   cookie = '';
   jd: JSDOM = {} as any;
 
-  errorCode = CrawlerError.UnexpectedErr;
+  errorCode = ErrCode.UnexpectedErr;
   errorMsg = '';
 
   async loadPage(url: string, referrer?: string) {
@@ -37,12 +37,12 @@ export class LabSysCrawler {
   checkJdUrlIsInclude(url: string) {
     const curUrl = this.jd.window.location.href;
     if (curUrl.includes('login') || !this.jd.window.location.href.includes(url)) {
-      this.errorCode = CrawlerError.OpenLabSysErr;
+      this.errorCode = ErrCode.OpenLabSysErr;
       this.errorMsg = `被重定向至${this.jd.window.location.href}`;
       throw new Error(this.errorMsg);
     }
     if (this.jd.serialize().includes(`self.location='/aexp'`)) {
-      this.errorCode = CrawlerError.LabSysCookieExpired;
+      this.errorCode = ErrCode.LabSysCookieExpired;
       this.errorMsg = `实验系统打开失败，cookie过期`;
     }
   }
@@ -50,7 +50,7 @@ export class LabSysCrawler {
   parseLabCourseRow(rowEl: HTMLTableRowElement) {
     const tdElArr = rowEl.querySelectorAll('td');
     if (tdElArr.length !== 11) {
-      this.errorCode = CrawlerError.LabCourseRowParseErr;
+      this.errorCode = ErrCode.LabCourseRowParseErr;
       this.errorMsg = `解析实验课表格行出差, ${rowEl.outerText}`;
       throw new Error(this.errorMsg);
     }
@@ -64,7 +64,7 @@ export class LabSysCrawler {
       endPageUrl = pageElArr[3].href || '';
     const regResult = endPageUrl.match(/page.pageNum=(\d+)/);
     if (!regResult || regResult.length !== 2) {
-      this.errorCode = CrawlerError.LabCoursePageParseErr;
+      this.errorCode = ErrCode.LabCoursePageParseErr;
       this.errorMsg = `实验课翻页解析错误，${endPageUrl}`;
       throw new Error(this.errorMsg);
     }
@@ -83,7 +83,7 @@ export class LabSysCrawler {
         resultArr.push(this.parseLabCourseRow(tableEl[j]));
       }
     }
-    this.errorCode = CrawlerError.NoError;
+    this.errorCode = ErrCode.NoError;
     return resultArr;
   }
 }

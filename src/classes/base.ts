@@ -1,6 +1,6 @@
-import { CrawlerError } from '../constant/errorCode';
+import { ErrCode } from '../constant/errorCode';
 
 interface ICrawler {
-  errorCode: CrawlerError;
+  errorCode: ErrCode;
   errorMsg: string;
 }

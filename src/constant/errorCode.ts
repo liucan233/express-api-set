@@ -1,5 +1,5 @@
-export enum CrawlerError {
-  NoError,
+export enum ErrCode {
+  NoError = 0,
   OpenCasSystemErr,
   GetCasSysCaptchaErr,
   CasSysUnstable,
@@ -12,4 +12,8 @@ export enum CrawlerError {
   LabCoursePageParseErr,
   LabCourseRowParseErr,
   LabSysCookieExpired,
+  UserAuthErr,
+  BadReqParamErr,
+  NoUserErr,
+  UserPasswordErr,
 }

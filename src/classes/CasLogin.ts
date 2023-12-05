@@ -1,5 +1,5 @@
 import { logger } from '../logger';
-import { CrawlerError } from '../constant/errorCode';
+import { ErrCode } from '../constant/errorCode';
 import { fetch } from '../libraries/fetch';
 import { securityJs } from '../libraries/securityJs';
 import { headersToString } from '../utils';
@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 const casUrl = '//cas.swust.edu.cn/authserver/login?service=http%3A%2F%2Fsoa.swust.edu.cn%2F';
 
 export class CasLogin {
-  errorCode = CrawlerError.UnexpectedErr;
+  errorCode = ErrCode.UnexpectedErr;
   errorMsg = '';
   url = casUrl;
   session = '';
@@ -41,7 +41,7 @@ export class CasLogin {
     } catch (error) {
       logger.info('尝试cas系统使用http失败');
     }
-    this.errorCode = CrawlerError.OpenCasSystemErr;
+    this.errorCode = ErrCode.OpenCasSystemErr;
     this.errorMsg = `尝试判断cas系统协议失败`;
     throw new Error(this.errorMsg);
   }
@@ -52,7 +52,7 @@ export class CasLogin {
       this.session = res.cookie;
       return;
     }
-    this.errorCode = CrawlerError.OpenCasSystemErr;
+    this.errorCode = ErrCode.OpenCasSystemErr;
     this.errorMsg = `响应状态码${res.status}，cookie为${res.cookie}`;
     throw new Error(this.errorMsg);
   }
@@ -65,10 +65,10 @@ export class CasLogin {
     });
     if (res.dataUrlResult && !res.cookie && res.status < 300 && res.status > 199) {
       this.captcha = res.dataUrlResult;
-      this.errorCode = CrawlerError.NoError;
+      this.errorCode = ErrCode.NoError;
       return;
     }
-    this.errorCode = CrawlerError.OpenCasSystemErr;
+    this.errorCode = ErrCode.OpenCasSystemErr;
     this.errorMsg = `响应状态码${res.status}，cookie为${res.cookie}`;
     throw new Error(this.errorMsg);
   }
@@ -80,11 +80,11 @@ export class CasLogin {
       },
     });
     if (!res.jsonResult || res.status > 299 || res.status < 200) {
-      this.errorCode = CrawlerError.OpenCasSystemErr;
+      this.errorCode = ErrCode.OpenCasSystemErr;
       this.errorMsg = '预期获得ras参数，实际为空';
     }
     if (res.cookie) {
-      this.errorCode = CrawlerError.OpenCasSystemErr;
+      this.errorCode = ErrCode.OpenCasSystemErr;
       this.errorMsg = `请求携带${this.session}，被重新设置为${res.cookie}`;
       throw new Error(this.errorMsg);
     }
@@ -108,18 +108,18 @@ export class CasLogin {
 
     if (res.cookie.includes('TGC')) {
       this.tgcCookie = res.cookie;
-      this.errorCode = CrawlerError.NoError;
+      this.errorCode = ErrCode.NoError;
       return;
     }
 
     if (!res.textResult?.includes('pwdError') || (res.status > 299 && res.status < 309)) {
-      this.errorCode = CrawlerError.CasSysUnstable;
+      this.errorCode = ErrCode.CasSysUnstable;
       this.errorMsg = `session可能已失效，响应状态码${res.status}，页面内容为${res.textResult}`;
       throw new Error(this.errorMsg);
     }
 
     if (res.status === 401) {
-      this.errorCode = CrawlerError.AccPsdCpaMismatch;
+      this.errorCode = ErrCode.AccPsdCpaMismatch;
       console.log(res.textResult);
       if (res.textResult.includes('密码错误')) {
         this.errorMsg = '用户名或密码错误';
@@ -129,7 +129,7 @@ export class CasLogin {
       throw new Error(this.errorMsg);
     }
 
-    this.errorCode = CrawlerError.UnexpectedErr;
+    this.errorCode = ErrCode.UnexpectedErr;
     this.errorMsg = `未知错误，请联系开发者排查错误`;
     throw new Error(this.errorMsg);
   }
@@ -153,12 +153,12 @@ export class CasLogin {
     });
     let location = res.headers.get('location');
     if (!location) {
-      this.errorCode = CrawlerError.CasSysTGCExpired;
+      this.errorCode = ErrCode.CasSysTGCExpired;
       this.errorMsg = 'cas系统登录过期，需要重新登陆';
       throw new Error(this.errorMsg);
     }
     if (!location.includes(service)) {
-      this.errorCode = CrawlerError.CasRedirectUnexpected;
+      this.errorCode = ErrCode.CasRedirectUnexpected;
       this.errorMsg = `cas系统重定向为${location}，预期是${service}`;
       throw new Error(this.errorMsg);
     }
@@ -178,10 +178,10 @@ export class CasLogin {
     }
     location = res.headers.get('location');
     if (res.cookie && !location) {
-      this.errorCode = CrawlerError.NoError;
+      this.errorCode = ErrCode.NoError;
       return res.cookie;
     }
-    this.errorCode = CrawlerError.CasSysUnstable;
+    this.errorCode = ErrCode.CasSysUnstable;
     this.errorMsg = `响应状态码${res.status}，cas系统跳转目标系统未被设置cookie`;
     throw new Error(this.errorMsg);
   }

@@ -11,8 +11,14 @@ if (!process.env.NODE_ENV) {
 
 logger.info(`${process.env.NODE_ENV}环境`);
 
+if (!process.env.hash_salt || !process.env.wx_appid || !process.env.wx_secret) {
+  throw new Error('未设置环境变量');
+}
+
 export const appPort = 3000;
 
 export const wxAppid = process.env.wx_appid;
 
 export const wxSecret = process.env.wx_secret;
+
+export const hashSalt = process.env.hash_salt;
