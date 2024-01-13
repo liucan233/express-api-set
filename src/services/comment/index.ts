@@ -1,31 +1,43 @@
 import { Router } from 'express';
 import { prismaClient } from '../../libraries/prisma';
+import { ErrCode } from '../../constant/errorCode';
 
 export const commentRouter: Router = Router();
 
-commentRouter.post('/newComment', async (req, res, next) => {
-  const { body } = req;
+interface INewCommentBody {
+  externalId: string;
+  content: string;
+  desc?: string;
+}
+commentRouter.post<string, any, any, INewCommentBody>('/newComment', async (req, res, next) => {
+  const { externalId, content, desc } = req.body;
+  if (!externalId || !content) {
+    res.json({
+      code: ErrCode.BadReqParamErr,
+      msg: 'body必须包含externalId和content',
+    });
+  }
   try {
-    const { id } = res.locals.userInfo;
+    const { id: userId } = res.locals.userInfo;
     let findRes = await prismaClient.commentSource.findFirst({
       where: {
-        externalId: body.id,
+        externalId,
       },
     });
     if (!findRes) {
       findRes = await prismaClient.commentSource.create({
         data: {
-          desc: 'express_created',
-          externalId: body.id,
-          userId: id,
+          desc,
+          externalId,
+          userId,
         },
       });
     }
     const newComment = await prismaClient.comment.create({
       data: {
         sourceId: findRes.id,
-        userId: id,
-        content: body.content,
+        userId,
+        content,
       },
     });
     res.json(newComment);
