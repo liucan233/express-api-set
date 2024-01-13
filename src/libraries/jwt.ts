@@ -3,13 +3,7 @@ import { logger } from '../logger';
 import type { Request, Response, NextFunction } from 'express';
 import { ErrCode } from '../constant/errorCode';
 import crypto from 'node:crypto';
-import { hashSalt } from '../config';
-
-let jwtSecret = process.env.jwt_secret || 'xVXPDzlvCDbRzkzNSiljlUkIagZMgUGo';
-
-if (!process.env.jwt_secret && process.env.NODE_ENV === 'production') {
-  logger.error('JWT SECRET未配置');
-}
+import { hashSalt, jwtSecret } from '../config';
 
 export const jwtSign = (payload: JwtPayload) => {
   return jwt.sign(JSON.stringify(payload), jwtSecret, {
@@ -18,12 +12,14 @@ export const jwtSign = (payload: JwtPayload) => {
 };
 
 export const jwtDecode = (token: string): JwtPayload | null => {
-  const payload = jwt.verify(token, jwtSecret, {
-    complete: false,
-  });
-  if (typeof payload === 'object') {
-    return payload;
-  }
+  try {
+    const payload = jwt.verify(token, jwtSecret, {
+      complete: false,
+    });
+    if (typeof payload === 'object') {
+      return payload;
+    }
+  } catch (err) {}
   return null;
 };
 

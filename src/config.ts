@@ -11,9 +11,15 @@ if (!process.env.NODE_ENV) {
 
 logger.info(`${process.env.NODE_ENV}环境`);
 
-if (!process.env.hash_salt || !process.env.wx_appid || !process.env.wx_secret) {
-  throw new Error('未设置环境变量');
+const envKeyArr = ['jwt_secret', 'hash_salt'];
+
+for (const k of envKeyArr) {
+  if (!process.env[k]) {
+    logger.error(`未配置process.env.${k}`);
+  }
 }
+
+export const jwtSecret = process.env.jwt_secret || 'xVXPDzlvCDbRzkzNSiljlUkIagZMgUGo';
 
 export const appPort = 3000;
 
@@ -21,4 +27,4 @@ export const wxAppid = process.env.wx_appid;
 
 export const wxSecret = process.env.wx_secret;
 
-export const hashSalt = process.env.hash_salt;
+export const hashSalt = process.env.hash_salt || 'DeOoarMi85X3AvW1';
