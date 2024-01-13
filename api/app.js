@@ -4,9 +4,11 @@ import require$$2 from 'node:os';
 import require$$3 from 'node:crypto';
 import winston from 'winston';
 import express, { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
 import bf from 'node:buffer';
 import nodeFetch from 'node-fetch';
 import { JSDOM, CookieJar } from 'jsdom';
+import jwt from 'jsonwebtoken';
 
 var main$1 = {exports: {}};
 
@@ -431,9 +433,13 @@ if (!process.env.NODE_ENV) {
     }
 }
 logger.info(`${process.env.NODE_ENV}环境`);
+if (!process.env.hash_salt || !process.env.wx_appid || !process.env.wx_secret) {
+    throw new Error('未设置环境变量');
+}
 const appPort = 3000;
 process.env.wx_appid;
 process.env.wx_secret;
+const hashSalt = process.env.hash_salt;
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -467,21 +473,133 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-var CrawlerError;
-(function (CrawlerError) {
-    CrawlerError[CrawlerError["NoError"] = 0] = "NoError";
-    CrawlerError[CrawlerError["OpenCasSystemErr"] = 1] = "OpenCasSystemErr";
-    CrawlerError[CrawlerError["GetCasSysCaptchaErr"] = 2] = "GetCasSysCaptchaErr";
-    CrawlerError[CrawlerError["CasSysUnstable"] = 3] = "CasSysUnstable";
-    CrawlerError[CrawlerError["AccPsdCpaMismatch"] = 4] = "AccPsdCpaMismatch";
-    CrawlerError[CrawlerError["UnexpectedErr"] = 5] = "UnexpectedErr";
-    CrawlerError[CrawlerError["CasSysTGCExpired"] = 6] = "CasSysTGCExpired";
-    CrawlerError[CrawlerError["CasRedirectUnexpected"] = 7] = "CasRedirectUnexpected";
-    CrawlerError[CrawlerError["OpenLabSysErr"] = 8] = "OpenLabSysErr";
-    CrawlerError[CrawlerError["LabCoursePageParseErr"] = 9] = "LabCoursePageParseErr";
-    CrawlerError[CrawlerError["LabCourseRowParseErr"] = 10] = "LabCourseRowParseErr";
-    CrawlerError[CrawlerError["LabSysCookieExpired"] = 11] = "LabSysCookieExpired";
-})(CrawlerError || (CrawlerError = {}));
+const prismaClient = new PrismaClient();
+
+const commentRouter = Router();
+commentRouter.post('/newComment', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { body } = req;
+    try {
+        const { id } = res.locals.userInfo;
+        let findRes = yield prismaClient.commentSource.findFirst({
+            where: {
+                externalId: body.id,
+            },
+        });
+        if (!findRes) {
+            findRes = yield prismaClient.commentSource.create({
+                data: {
+                    desc: 'express_created',
+                    externalId: body.id,
+                    userId: id,
+                },
+            });
+        }
+        const newComment = yield prismaClient.comment.create({
+            data: {
+                sourceId: findRes.id,
+                userId: id,
+                content: body.content,
+            },
+        });
+        res.json(newComment);
+    }
+    catch (err) {
+        next(err);
+    }
+}));
+commentRouter.get('/list', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { externalId, pageSize, lastCommentId } = req.query;
+    // 处理分页大小
+    let pageSizeNum = Number(pageSize);
+    if (!pageSizeNum) {
+        pageSizeNum = 20;
+    }
+    // 处理游标
+    let lastCommentIdNum = Number(lastCommentId);
+    if (Number.isNaN(lastCommentIdNum)) {
+        lastCommentIdNum = -1;
+    }
+    const queryUser = {
+        select: {
+            id: true,
+            name: true,
+        },
+    };
+    const commentArrCursor = lastCommentIdNum == -1
+        ? undefined
+        : {
+            id: lastCommentIdNum,
+        };
+    try {
+        const findRes = yield prismaClient.commentSource.findFirst({
+            where: {
+                externalId,
+            },
+            include: {
+                commentArr: {
+                    include: {
+                        replyArr: {
+                            include: {
+                                user: queryUser,
+                                reply: queryUser,
+                            },
+                        },
+                        user: queryUser,
+                    },
+                    take: pageSizeNum,
+                    skip: commentArrCursor ? 1 : undefined,
+                    cursor: commentArrCursor,
+                },
+            },
+        });
+        res.json({
+            msg: '',
+            code: 0,
+            data: findRes || [],
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+}));
+commentRouter.post('/replyComment', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { content, replyCommentId, replyUserId } = req.body;
+    try {
+        const { id: userId } = res.locals.userInfo;
+        const newComment = yield prismaClient.commentReply.create({
+            data: {
+                sourceId: replyCommentId,
+                userId: userId,
+                content: content,
+                replyUserId,
+            },
+        });
+        res.json(newComment);
+    }
+    catch (err) {
+        next(err);
+    }
+}));
+
+var ErrCode;
+(function (ErrCode) {
+    ErrCode[ErrCode["NoError"] = 0] = "NoError";
+    ErrCode[ErrCode["OpenCasSystemErr"] = 1] = "OpenCasSystemErr";
+    ErrCode[ErrCode["GetCasSysCaptchaErr"] = 2] = "GetCasSysCaptchaErr";
+    ErrCode[ErrCode["CasSysUnstable"] = 3] = "CasSysUnstable";
+    ErrCode[ErrCode["AccPsdCpaMismatch"] = 4] = "AccPsdCpaMismatch";
+    ErrCode[ErrCode["UnexpectedErr"] = 5] = "UnexpectedErr";
+    ErrCode[ErrCode["CasSysTGCExpired"] = 6] = "CasSysTGCExpired";
+    ErrCode[ErrCode["CasRedirectUnexpected"] = 7] = "CasRedirectUnexpected";
+    ErrCode[ErrCode["OpenLabSysErr"] = 8] = "OpenLabSysErr";
+    ErrCode[ErrCode["LabCoursePageParseErr"] = 9] = "LabCoursePageParseErr";
+    ErrCode[ErrCode["LabCourseRowParseErr"] = 10] = "LabCourseRowParseErr";
+    ErrCode[ErrCode["LabSysCookieExpired"] = 11] = "LabSysCookieExpired";
+    ErrCode[ErrCode["UserAuthErr"] = 12] = "UserAuthErr";
+    ErrCode[ErrCode["BadReqParamErr"] = 13] = "BadReqParamErr";
+    ErrCode[ErrCode["NoUserErr"] = 14] = "NoUserErr";
+    ErrCode[ErrCode["UserPasswordErr"] = 15] = "UserPasswordErr";
+})(ErrCode || (ErrCode = {}));
 
 const filterInvalidText = (str) => {
     const result = str.match(/\w+=[-\w%.]+/g);
@@ -1254,7 +1372,7 @@ const securityJs = security.RSAUtils;
 const casUrl = '//cas.swust.edu.cn/authserver/login?service=http%3A%2F%2Fsoa.swust.edu.cn%2F';
 class CasLogin {
     constructor() {
-        this.errorCode = CrawlerError.UnexpectedErr;
+        this.errorCode = ErrCode.UnexpectedErr;
         this.errorMsg = '';
         this.url = casUrl;
         this.session = '';
@@ -1285,7 +1403,7 @@ class CasLogin {
             catch (error) {
                 logger.info('尝试cas系统使用http失败');
             }
-            this.errorCode = CrawlerError.OpenCasSystemErr;
+            this.errorCode = ErrCode.OpenCasSystemErr;
             this.errorMsg = `尝试判断cas系统协议失败`;
             throw new Error(this.errorMsg);
         });
@@ -1297,7 +1415,7 @@ class CasLogin {
                 this.session = res.cookie;
                 return;
             }
-            this.errorCode = CrawlerError.OpenCasSystemErr;
+            this.errorCode = ErrCode.OpenCasSystemErr;
             this.errorMsg = `响应状态码${res.status}，cookie为${res.cookie}`;
             throw new Error(this.errorMsg);
         });
@@ -1311,10 +1429,10 @@ class CasLogin {
             });
             if (res.dataUrlResult && !res.cookie && res.status < 300 && res.status > 199) {
                 this.captcha = res.dataUrlResult;
-                this.errorCode = CrawlerError.NoError;
+                this.errorCode = ErrCode.NoError;
                 return;
             }
-            this.errorCode = CrawlerError.OpenCasSystemErr;
+            this.errorCode = ErrCode.OpenCasSystemErr;
             this.errorMsg = `响应状态码${res.status}，cookie为${res.cookie}`;
             throw new Error(this.errorMsg);
         });
@@ -1327,11 +1445,11 @@ class CasLogin {
                 },
             });
             if (!res.jsonResult || res.status > 299 || res.status < 200) {
-                this.errorCode = CrawlerError.OpenCasSystemErr;
+                this.errorCode = ErrCode.OpenCasSystemErr;
                 this.errorMsg = '预期获得ras参数，实际为空';
             }
             if (res.cookie) {
-                this.errorCode = CrawlerError.OpenCasSystemErr;
+                this.errorCode = ErrCode.OpenCasSystemErr;
                 this.errorMsg = `请求携带${this.session}，被重新设置为${res.cookie}`;
                 throw new Error(this.errorMsg);
             }
@@ -1355,16 +1473,16 @@ class CasLogin {
             });
             if (res.cookie.includes('TGC')) {
                 this.tgcCookie = res.cookie;
-                this.errorCode = CrawlerError.NoError;
+                this.errorCode = ErrCode.NoError;
                 return;
             }
             if (!((_a = res.textResult) === null || _a === void 0 ? void 0 : _a.includes('pwdError')) || (res.status > 299 && res.status < 309)) {
-                this.errorCode = CrawlerError.CasSysUnstable;
+                this.errorCode = ErrCode.CasSysUnstable;
                 this.errorMsg = `session可能已失效，响应状态码${res.status}，页面内容为${res.textResult}`;
                 throw new Error(this.errorMsg);
             }
             if (res.status === 401) {
-                this.errorCode = CrawlerError.AccPsdCpaMismatch;
+                this.errorCode = ErrCode.AccPsdCpaMismatch;
                 console.log(res.textResult);
                 if (res.textResult.includes('密码错误')) {
                     this.errorMsg = '用户名或密码错误';
@@ -1374,7 +1492,7 @@ class CasLogin {
                 }
                 throw new Error(this.errorMsg);
             }
-            this.errorCode = CrawlerError.UnexpectedErr;
+            this.errorCode = ErrCode.UnexpectedErr;
             this.errorMsg = `未知错误，请联系开发者排查错误`;
             throw new Error(this.errorMsg);
         });
@@ -1400,12 +1518,12 @@ class CasLogin {
             });
             let location = res.headers.get('location');
             if (!location) {
-                this.errorCode = CrawlerError.CasSysTGCExpired;
+                this.errorCode = ErrCode.CasSysTGCExpired;
                 this.errorMsg = 'cas系统登录过期，需要重新登陆';
                 throw new Error(this.errorMsg);
             }
             if (!location.includes(service)) {
-                this.errorCode = CrawlerError.CasRedirectUnexpected;
+                this.errorCode = ErrCode.CasRedirectUnexpected;
                 this.errorMsg = `cas系统重定向为${location}，预期是${service}`;
                 throw new Error(this.errorMsg);
             }
@@ -1424,10 +1542,10 @@ class CasLogin {
             }
             location = res.headers.get('location');
             if (res.cookie && !location) {
-                this.errorCode = CrawlerError.NoError;
+                this.errorCode = ErrCode.NoError;
                 return res.cookie;
             }
-            this.errorCode = CrawlerError.CasSysUnstable;
+            this.errorCode = ErrCode.CasSysUnstable;
             this.errorMsg = `响应状态码${res.status}，cas系统跳转目标系统未被设置cookie`;
             throw new Error(this.errorMsg);
         });
@@ -1534,7 +1652,7 @@ class LabSysCrawler {
     constructor() {
         this.cookie = '';
         this.jd = {};
-        this.errorCode = CrawlerError.UnexpectedErr;
+        this.errorCode = ErrCode.UnexpectedErr;
         this.errorMsg = '';
     }
     loadPage(url, referrer) {
@@ -1564,19 +1682,19 @@ class LabSysCrawler {
     checkJdUrlIsInclude(url) {
         const curUrl = this.jd.window.location.href;
         if (curUrl.includes('login') || !this.jd.window.location.href.includes(url)) {
-            this.errorCode = CrawlerError.OpenLabSysErr;
+            this.errorCode = ErrCode.OpenLabSysErr;
             this.errorMsg = `被重定向至${this.jd.window.location.href}`;
             throw new Error(this.errorMsg);
         }
         if (this.jd.serialize().includes(`self.location='/aexp'`)) {
-            this.errorCode = CrawlerError.LabSysCookieExpired;
+            this.errorCode = ErrCode.LabSysCookieExpired;
             this.errorMsg = `实验系统打开失败，cookie过期`;
         }
     }
     parseLabCourseRow(rowEl) {
         const tdElArr = rowEl.querySelectorAll('td');
         if (tdElArr.length !== 11) {
-            this.errorCode = CrawlerError.LabCourseRowParseErr;
+            this.errorCode = ErrCode.LabCourseRowParseErr;
             this.errorMsg = `解析实验课表格行出差, ${rowEl.outerText}`;
             throw new Error(this.errorMsg);
         }
@@ -1589,7 +1707,7 @@ class LabSysCrawler {
             let maxPageNum = 1, endPageUrl = pageElArr[3].href || '';
             const regResult = endPageUrl.match(/page.pageNum=(\d+)/);
             if (!regResult || regResult.length !== 2) {
-                this.errorCode = CrawlerError.LabCoursePageParseErr;
+                this.errorCode = ErrCode.LabCoursePageParseErr;
                 this.errorMsg = `实验课翻页解析错误，${endPageUrl}`;
                 throw new Error(this.errorMsg);
             }
@@ -1608,7 +1726,7 @@ class LabSysCrawler {
                     resultArr.push(this.parseLabCourseRow(tableEl[j]));
                 }
             }
-            this.errorCode = CrawlerError.NoError;
+            this.errorCode = ErrCode.NoError;
             return resultArr;
         });
     }
@@ -1649,17 +1767,100 @@ swustRouter.use((req, res) => {
     }
 });
 
+let jwtSecret = process.env.jwt_secret || 'xVXPDzlvCDbRzkzNSiljlUkIagZMgUGo';
+if (!process.env.jwt_secret && process.env.NODE_ENV === 'production') {
+    logger.error('JWT SECRET未配置');
+}
+const jwtSign = (payload) => {
+    return jwt.sign(JSON.stringify(payload), jwtSecret, {
+        algorithm: 'HS256',
+    });
+};
+const jwtDecode = (token) => {
+    const payload = jwt.verify(token, jwtSecret, {
+        complete: false,
+    });
+    if (typeof payload === 'object') {
+        return payload;
+    }
+    return null;
+};
+const jwtMiddleware = (req, res, next) => {
+    const token = req.headers['authorization'];
+    const decodedToken = token && jwtDecode(token);
+    if (token && decodedToken) {
+        res.locals.userInfo = decodedToken;
+        next();
+    }
+    else {
+        res.json({
+            code: ErrCode.UnexpectedErr,
+            msg: 'http请求头authorization无效，身份认证失败',
+        });
+    }
+};
+/** 生成哈希密码 */
+const hashPassword = (password) => {
+    return require$$3.pbkdf2Sync(password, hashSalt, 10000, 32, 'sha512').toString('hex');
+};
+logger.info(`明文密码2333，hash结果：${hashPassword('2333')}`);
+
+const userRouter = Router();
+userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.body.email || !req.body.password) {
+        res.json({
+            code: ErrCode.BadReqParamErr,
+            msg: '请求参数不正确',
+        });
+        return;
+    }
+    const user = yield prismaClient.user.findFirst({
+        where: {
+            email: req.body.email,
+        },
+    });
+    if (!user) {
+        res.json({
+            code: ErrCode.NoUserErr,
+            msg: '用户不存在',
+        });
+        return;
+    }
+    const hashPasswd = hashPassword(req.body.password);
+    if (hashPasswd === user.password) {
+        res.json({
+            code: ErrCode.NoError,
+            msg: '',
+            data: jwtSign({
+                id: user.id,
+                email: user.email,
+            }),
+        });
+    }
+    else {
+        res.json({
+            code: ErrCode.UserPasswordErr,
+            msg: '密码不正确',
+        });
+    }
+}));
+userRouter.post('/signout', jwtMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () { }));
+
 // import { wxRouter } from './wechat';
 const servicesRouter = Router();
 servicesRouter.use('/swust', swustRouter);
+servicesRouter.use('/comment', jwtMiddleware, commentRouter);
+servicesRouter.use('/user', userRouter);
 // servicesRouter.use('/wx', wxRouter);
 
 const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
-    res.setHeader('access-control-allow-origin', '*');
-    res.setHeader('access-control-method', '*');
-    res.setHeader('access-control-headers', '*');
+    if (req.path.startsWith('/api')) {
+        res.setHeader('access-control-allow-origin', '*');
+        res.setHeader('access-control-method', '*');
+        res.setHeader('access-control-headers', '*');
+    }
     next();
 });
 app.use('/api', servicesRouter);

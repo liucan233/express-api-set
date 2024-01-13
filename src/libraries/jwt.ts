@@ -36,7 +36,7 @@ export const jwtMiddleware = (req: Request, res: Response, next: NextFunction) =
   } else {
     res.json({
       code: ErrCode.UnexpectedErr,
-      msg: 'header authorization无效',
+      msg: 'http请求头authorization无效，身份认证失败',
     });
   }
 };
@@ -45,3 +45,5 @@ export const jwtMiddleware = (req: Request, res: Response, next: NextFunction) =
 export const hashPassword = (password: string) => {
   return crypto.pbkdf2Sync(password, hashSalt, 10000, 32, 'sha512').toString('hex');
 };
+
+logger.info(`明文密码2333，hash结果：${hashPassword('2333')}`);

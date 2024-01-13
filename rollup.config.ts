@@ -3,12 +3,9 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import jsonSupport from '@rollup/plugin-json';
+import { RollupOptions } from 'rollup';
 
-// rollup.config.js
-/**
- * @type {import('rollup').RollupOptions}
- */
-const config = {
+const config: RollupOptions = {
   input: 'src/app.ts',
   output: {
     format: 'es',

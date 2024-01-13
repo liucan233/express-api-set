@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build:vercel": "rollup -c ./rollup.config.js",
+    "build:vercel": "rollup -c ./rollup.config.ts --configPlugin typescript",
     "build:babel": "babel ./src -d ./api -x \".ts,.js\"",
     "lint": "tsc --noEmit && eslint ./src --ext .ts",
     "start": "nodemon",
@@ -52,5 +52,9 @@
     "rollup-plugin-node-externals": "^6.1.2",
     "ts-node": "^10.9.1",
     "tslib": "^2.6.2"
+  },
+  "bin": {
+    "cea": "./bin/hello.js",
+    "test": "./bin/hello1.js"
   }
 }
