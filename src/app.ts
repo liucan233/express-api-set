@@ -12,6 +12,7 @@ app.use((req, res, next) => {
     res.setHeader('access-control-allow-origin', '*');
     res.setHeader('access-control-method', '*');
     res.setHeader('access-control-headers', '*');
+    res.setHeader('access-control-allow-headers', 'content-type');
   }
   next();
 });
@@ -27,7 +28,7 @@ app.use((req, res) => {
   }
 });
 
-app.listen(appPort, 'localhost', () => {
+app.listen(appPort, '0.0.0.0', () => {
   logger.info('应用启动成功localhost:' + appPort);
 });
 
