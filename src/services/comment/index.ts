@@ -39,8 +39,20 @@ commentRouter.post<string, any, any, INewCommentBody>('/newComment', async (req,
         userId,
         content,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            id: true,
+          },
+        },
+      },
     });
-    res.json(newComment);
+    res.json({
+      code: ErrCode.NoError,
+      data: newComment,
+    });
   } catch (err) {
     next(err);
   }
@@ -115,6 +127,12 @@ interface IReplyCommentReq {
 }
 commentRouter.post<string, any, any, IReplyCommentReq>('/replyComment', async (req, res, next) => {
   const { content, replyCommentId, replyUserId } = req.body;
+  const queryUser = {
+    select: {
+      id: true,
+      name: true,
+    },
+  };
   try {
     const { id: userId } = res.locals.userInfo;
     const newComment = await prismaClient.commentReply.create({
@@ -124,8 +142,15 @@ commentRouter.post<string, any, any, IReplyCommentReq>('/replyComment', async (r
         content: content,
         replyUserId,
       },
+      include: {
+        reply: queryUser,
+        user: queryUser,
+      },
     });
-    res.json(newComment);
+    res.json({
+      code: ErrCode.NoError,
+      data: newComment,
+    });
   } catch (err) {
     next(err);
   }
