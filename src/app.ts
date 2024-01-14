@@ -12,9 +12,13 @@ app.use((req, res, next) => {
     res.setHeader('access-control-allow-origin', '*');
     res.setHeader('access-control-method', '*');
     res.setHeader('access-control-headers', '*');
-    res.setHeader('access-control-allow-headers', 'content-type');
+    res.setHeader('access-control-allow-headers', 'content-type,authorization');
   }
-  next();
+  if (req.method === 'OPTIONS') {
+    res.end();
+  } else {
+    next();
+  }
 });
 
 app.use('/api', servicesRouter);
