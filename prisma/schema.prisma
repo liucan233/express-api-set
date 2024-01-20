@@ -14,6 +14,7 @@ model User {
   id                 Int             @id @default(autoincrement())
   email              String          @unique
   name               String
+  avatar             String?
   password           String
   // 当前用户非@回复
   commentArr         Comment[]
@@ -23,6 +24,12 @@ model User {
   commentOwnArr      CommentSource[]
   // 当前用户被@
   commentReceivedArr CommentReply[]  @relation("replyTo")
+}
+
+model EmailVerification {
+  email     String   @unique
+  captcha   String
+  createdAt DateTime @default(now())
 }
 
 // 可以被评论的资源

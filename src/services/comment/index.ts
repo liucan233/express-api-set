@@ -107,13 +107,16 @@ commentRouter.get<'/list', any, any, null, IGetListQuery>('/list', async (req, r
           take: pageSizeNum,
           skip: commentArrCursor ? 1 : undefined,
           cursor: commentArrCursor,
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
       },
     });
     res.json({
       msg: '',
       code: 0,
-      data: findRes || [],
+      data: findRes || { commentArr: [] },
     });
   } catch (err) {
     next(err);

@@ -16,4 +16,6 @@ export enum ErrCode {
   BadReqParamErr,
   NoUserErr,
   UserPasswordErr,
+
+  OutOfTimeErr,
 }
