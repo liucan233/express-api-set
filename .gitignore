@@ -6,3 +6,4 @@ dist
 .vercel
 env/app.env
 prisma/.env
+/upload

@@ -2,7 +2,6 @@ import { logger } from '../logger';
 import { ErrCode } from '../constant/errorCode';
 import { fetch } from '../libraries/fetch';
 import { securityJs } from '../libraries/securityJs';
-import { headersToString } from '../utils';
 import { JSDOM } from 'jsdom';
 
 const casUrl = '//cas.swust.edu.cn/authserver/login?service=http%3A%2F%2Fsoa.swust.edu.cn%2F';

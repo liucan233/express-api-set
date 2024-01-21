@@ -183,3 +183,60 @@ userRouter.post('/signinByCaptcha', async (req, res) => {
     });
   }
 });
+
+userRouter.get('/info', jwtMiddleware, async (req, res) => {
+  try {
+    const sqlRow = await prismaClient.user.findFirst({
+      where: {
+        id: res.locals.userInfo.id,
+      },
+      select: {
+        name: true,
+        id: true,
+        avatar: true,
+        email: true,
+      },
+    });
+    res.json({
+      code: ErrCode.NoError,
+      data: sqlRow,
+    });
+  } catch (error) {
+    res.json({
+      code: ErrCode.UnexpectedErr,
+      msg: logError(error),
+    });
+  }
+});
+
+userRouter.post('/update', jwtMiddleware, async (req, res) => {
+  let { name, avatar, password } = req.body;
+  if (typeof name !== 'string' || typeof avatar !== 'string') {
+    res.json({
+      code: ErrCode.BadReqParamErr,
+      msg: '参数不正确',
+    });
+    return;
+  }
+  try {
+    const sqlRow = await prismaClient.user.update({
+      where: {
+        id: res.locals.userInfo.id,
+      },
+      data: {
+        name: name || undefined,
+        avatar: avatar || undefined,
+        password: password ? hashPassword(password) : undefined,
+      },
+    });
+    res.json({
+      code: ErrCode.NoError,
+      msg: '更新成功',
+    });
+  } catch (error) {
+    res.json({
+      code: ErrCode.UnexpectedErr,
+      msg: logError(error),
+    });
+  }
+});

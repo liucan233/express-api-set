@@ -43,7 +43,7 @@ commentRouter.post<string, any, any, INewCommentBody>('/newComment', async (req,
         user: {
           select: {
             name: true,
-            email: true,
+            avatar: true,
             id: true,
           },
         },
@@ -80,6 +80,7 @@ commentRouter.get<'/list', any, any, null, IGetListQuery>('/list', async (req, r
     select: {
       id: true,
       name: true,
+      avatar: true,
     },
   };
   const commentArrCursor =
@@ -134,6 +135,7 @@ commentRouter.post<string, any, any, IReplyCommentReq>('/replyComment', async (r
     select: {
       id: true,
       name: true,
+      avatar: true,
     },
   };
   try {

@@ -1,6 +1,4 @@
 import { logger } from '../logger';
-import { fetch } from '../libraries/fetch';
-import { headersToString } from '../utils';
 import { JSDOM, CookieJar } from 'jsdom';
 import { ErrCode } from '../constant/errorCode';
 

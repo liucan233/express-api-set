@@ -24,6 +24,7 @@ model User {
   commentOwnArr      CommentSource[]
   // 当前用户被@
   commentReceivedArr CommentReply[]  @relation("replyTo")
+  Upload             Upload[]
 }
 
 model EmailVerification {
@@ -64,4 +65,13 @@ model CommentReply {
   user        User     @relation("replyBy", fields: [userId], references: [id])
   replyUserId Int?
   reply       User?    @relation("replyTo", fields: [replyUserId], references: [id])
+}
+
+model Upload {
+  id           String   @id() @default(cuid())
+  savePath     String
+  fileName     String
+  createdAt    DateTime @default(now())
+  uploadUser   User     @relation(fields: [uploadUserId], references: [id])
+  uploadUserId Int
 }

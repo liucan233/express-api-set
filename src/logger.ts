@@ -7,11 +7,15 @@ export const logger = winston.createLogger({
 });
 
 export const logError = (err: unknown) => {
+  let msg = '';
   if (err instanceof Error && err.stack) {
     logger.error(err.stack);
+    msg = err.message;
   } else {
-    logger.error(JSON.stringify(err));
+    msg = JSON.stringify(err);
+    logger.error(msg);
   }
+  return msg;
 };
 
 logger.add(
