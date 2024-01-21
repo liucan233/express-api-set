@@ -1,0 +1,32 @@
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    environment:
+      name: 'Production'
+
+    steps:
+      - name: ssh-job
+        uses: nekiro/ssh-job@v1.0.5
+        with:
+          host: ${{ vars.S_HOST }}
+          port: ${{ vars.S_PORT }}
+          user: ${{ vars.S_USER }}
+          password: ${{ vars.S_PASSWORD }}
+          envs: '{}'
+          command: |
+            source ~/.bash_profile
+            cd ${{ vars.WORK_ROOT }}
+            git fetch origin main
+            git reset --hard origin/main
+            pnpm i
+            npx prisma migrate deploy
+            pm2 stop express-api-set
+            pnpm run build:babel
+            pm2 start express-api-set
