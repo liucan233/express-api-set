@@ -1,17 +1,9 @@
 {
   "verbose": false,
-  "ignore": [
-    "**/pnpm-lock.yaml",
-    "**/package.json",
-    "**/README.md",
-    "**/.gitignore",
-    "**/.vscode/**"
-  ],
+  "ignore": ["**/pnpm-lock.yaml", "**/package.json", "**/README.md", "**/.gitignore", "**/.vscode/**"],
   "watch": ["./src", "./local.json"],
   "delay": 0.3,
   "ext": "ts,json",
-  "execMap": {
-    
-  },
-  "exec": "npx ts-node ./src/app.ts"
+  "execMap": {},
+  "exec": "node --loader ts-node/esm ./src/app.ts"
 }

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prismaClient } from '../../libraries/prisma';
 import { ErrCode } from '../../constant/errorCode';
+import { jwtMiddleware } from '../../libraries/jwt';
 
 export const commentRouter: Router = Router();
 
@@ -9,7 +10,7 @@ interface INewCommentBody {
   content: string;
   desc?: string;
 }
-commentRouter.post<string, any, any, INewCommentBody>('/newComment', async (req, res, next) => {
+commentRouter.post<string, any, any, INewCommentBody>('/newComment', jwtMiddleware, async (req, res, next) => {
   const { externalId, content, desc } = req.body;
   if (!externalId || !content) {
     res.json({
@@ -129,7 +130,7 @@ interface IReplyCommentReq {
   replyCommentId: number;
   replyUserId?: number;
 }
-commentRouter.post<string, any, any, IReplyCommentReq>('/replyComment', async (req, res, next) => {
+commentRouter.post<string, any, any, IReplyCommentReq>('/replyComment', jwtMiddleware, async (req, res, next) => {
   const { content, replyCommentId, replyUserId } = req.body;
   const queryUser = {
     select: {

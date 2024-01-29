@@ -11,7 +11,7 @@ export const servicesRouter: Router = Router();
 
 servicesRouter.use('/swust', swustRouter);
 
-servicesRouter.use('/comment', jwtMiddleware, commentRouter);
+servicesRouter.use('/comment', commentRouter);
 
 servicesRouter.use('/user', userRouter);
 
