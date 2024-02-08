@@ -28,5 +28,5 @@ jobs:
             pnpm i
             npx prisma migrate deploy
             pm2 stop express-api-set
-            pnpm run build:babel
+            pnpm run build:vercel
             pm2 start express-api-set

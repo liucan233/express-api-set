@@ -48,7 +48,7 @@ model Comment {
   sourceId  Int
   source    CommentSource  @relation(fields: [sourceId], references: [id])
   createdAt DateTime       @default(now())
-  content   String
+  content   String         @db.VarChar(2048)
   userId    Int
   user      User           @relation(fields: [userId], references: [id])
   // 当前评论的子评论，可以是@当前评论，也可以是@其他评论
@@ -60,7 +60,7 @@ model CommentReply {
   createdAt   DateTime @default(now())
   sourceId    Int
   source      Comment  @relation(fields: [sourceId], references: [id])
-  content     String
+  content     String   @db.VarChar(2048)
   userId      Int
   user        User     @relation("replyBy", fields: [userId], references: [id])
   replyUserId Int?

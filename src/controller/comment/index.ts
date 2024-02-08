@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prismaClient } from '../../libraries/prisma';
 import { ErrCode } from '../../constant/errorCode';
 import { jwtMiddleware } from '../../libraries/jwt';
-import { catchError } from 'src/middleware/catchError';
+import { catchError } from '../../middleware/catchError';
 
 export const commentRouter: Router = Router();
 
