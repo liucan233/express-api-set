@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { logError } from '../../logger';
-import { LabSysCrawler } from '../../classes/LabSys';
+import { LabSysCrawler } from '../../service/LabSys';
 
 export default 1;
 

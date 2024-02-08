@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prismaClient } from '../../libraries/prisma';
 import { ErrCode } from '../../constant/errorCode';
 import { jwtMiddleware } from '../../libraries/jwt';
+import { catchError } from 'src/middleware/catchError';
 
 export const commentRouter: Router = Router();
 
@@ -65,32 +66,33 @@ interface IGetListQuery {
   lastCommentId?: string;
 }
 
-commentRouter.get<'/list', any, any, null, IGetListQuery>('/list', async (req, res, next) => {
-  const { externalId, pageSize, lastCommentId } = req.query;
-  // 处理分页大小
-  let pageSizeNum = Number(pageSize);
-  if (!pageSizeNum) {
-    pageSizeNum = 20;
-  }
-  // 处理游标
-  let lastCommentIdNum = Number(lastCommentId);
-  if (Number.isNaN(lastCommentIdNum)) {
-    lastCommentIdNum = -1;
-  }
-  const queryUser = {
-    select: {
-      id: true,
-      name: true,
-      avatar: true,
-    },
-  };
-  const commentArrCursor =
-    lastCommentIdNum == -1
-      ? undefined
-      : {
-          id: lastCommentIdNum,
-        };
-  try {
+commentRouter.get<string, any, any, null, IGetListQuery>(
+  '/list',
+  catchError(async (req, res, next) => {
+    const { externalId, pageSize, lastCommentId } = req.query;
+    // 处理分页大小
+    let pageSizeNum = Number(pageSize);
+    if (!pageSizeNum) {
+      pageSizeNum = 20;
+    }
+    // 处理游标
+    let lastCommentIdNum = Number(lastCommentId);
+    if (Number.isNaN(lastCommentIdNum)) {
+      lastCommentIdNum = -1;
+    }
+    const queryUser = {
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+      },
+    };
+    const commentArrCursor =
+      lastCommentIdNum == -1
+        ? undefined
+        : {
+            id: lastCommentIdNum,
+          };
     const findRes = await prismaClient.commentSource.findFirst({
       where: {
         externalId,
@@ -120,10 +122,8 @@ commentRouter.get<'/list', any, any, null, IGetListQuery>('/list', async (req, r
       code: 0,
       data: findRes || { commentArr: [] },
     });
-  } catch (err) {
-    next(err);
-  }
-});
+  }),
+);
 
 interface IReplyCommentReq {
   content: string;

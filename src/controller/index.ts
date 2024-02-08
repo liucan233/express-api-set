@@ -7,14 +7,14 @@ import { userRouter } from './user';
 import { uploadRouter } from './upload';
 // import { wxRouter } from './wechat';
 
-export const servicesRouter: Router = Router();
+export const apiRouter: Router = Router();
 
-servicesRouter.use('/swust', swustRouter);
+apiRouter.use('/swust', swustRouter);
 
-servicesRouter.use('/comment', commentRouter);
+apiRouter.use('/comment', commentRouter);
 
-servicesRouter.use('/user', userRouter);
+apiRouter.use('/user', userRouter);
 
-servicesRouter.use('/upload', uploadRouter);
+apiRouter.use('/upload', uploadRouter);
 
 // servicesRouter.use('/wx', wxRouter);

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { logError, logger } from '../../logger';
-import { CasLogin } from '../../classes/CasLogin';
+import { CasLogin } from '../../service/CasLogin';
 import { swustServices } from '../../constant/swustServices';
 
 export const loginCasRouter: Router = Router();

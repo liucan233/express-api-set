@@ -1,7 +1,7 @@
 import { appPort } from './config';
 import express from 'express';
 import { logError, logger } from './logger';
-import { servicesRouter } from './services';
+import { apiRouter } from './controller';
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use((req, res, next) => {
   }
 });
 
-app.use('/api', servicesRouter);
+app.use('/api', apiRouter);
 
 app.use((req, res) => {
   if (!res.writableEnded) {
